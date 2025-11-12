@@ -1,0 +1,115 @@
+steps:
+  # Build Pinkflow API
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '-t', 'gcr.io/$PROJECT_ID/pinkflow-api:$COMMIT_SHA',
+      '-t', 'gcr.io/$PROJECT_ID/pinkflow-api:latest',
+      '-f', 'pinkflow/Dockerfile.api',
+      'pinkflow/'
+    ]
+    id: 'build-api'
+
+  # Build Preview Gateway
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '-t', 'gcr.io/$PROJECT_ID/preview-gateway:$COMMIT_SHA',
+      '-t', 'gcr.io/$PROJECT_ID/preview-gateway:latest',
+      '-f', 'pinkflow/preview-gateway/Dockerfile',
+      'pinkflow/preview-gateway/'
+    ]
+    id: 'build-gateway'
+
+  # Push API image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/pinkflow-api:$COMMIT_SHA']
+    waitFor: ['build-api']
+
+  # Push API latest
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/pinkflow-api:latest']
+    waitFor: ['build-api']
+
+  # Push Gateway image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/preview-gateway:$COMMIT_SHA']
+    waitFor: ['build-gateway']
+
+  # Push Gateway latest
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/preview-gateway:latest']
+    waitFor: ['build-gateway']
+
+  # Deploy API to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args: [
+      'run', 'deploy', 'pinkflow-api',
+      '--image', 'gcr.io/$PROJECT_ID/pinkflow-api:$COMMIT_SHA',
+      '--region', 'us-central1',
+      '--platform', 'managed',
+      '--allow-unauthenticated',
+      '--port', '3001',
+      '--memory', '1Gi',
+      '--cpu', '1',
+      '--max-instances', '10',
+      '--service-account', 'pinkflow-deployer@$PROJECT_ID.iam.gserviceaccount.com',
+      '--set-env-vars', 'NODE_ENV=production'
+    ]
+    waitFor: ['build-api']
+
+  # Deploy Gateway to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args: [
+      'run', 'deploy', 'preview-gateway',
+      '--image', 'gcr.io/$PROJECT_ID/preview-gateway:$COMMIT_SHA',
+      '--region', 'us-central1',
+      '--platform', 'managed',
+      '--allow-unauthenticated',
+      '--port', '3000',
+      '--memory', '512Mi',
+      '--cpu', '1',
+      '--max-instances', '20',
+      '--service-account', 'pinkflow-deployer@$PROJECT_ID.iam.gserviceaccount.com',
+      '--set-env-vars', 'NODE_ENV=production,PINKFLOW_API_URL=https://pinkflow-api-${_SERVICE_URL_HASH}-uc.a.run.app'
+    ]
+    waitFor: ['build-gateway']
+
+  # Update DNS records
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args: [
+      'run', 'domain-mappings', 'create',
+      '--service', 'preview-gateway',
+      '--domain', 'gateway.mbtquniverse.com',
+      '--region', 'us-central1'
+    ]
+    waitFor: ['build-gateway']
+
+  # Send notification
+  - name: 'gcr.io/cloud-builders/curl'
+    args: [
+      '-X', 'POST',
+      '-H', 'Content-Type: application/json',
+      '-d', '{"text":"Pinkflow deployment completed successfully! 🚀"}',
+      '${_SLACK_WEBHOOK_URL}'
+    ]
+    allowFailure: true
+
+images:
+  - 'gcr.io/$PROJECT_ID/pinkflow-api:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/pinkflow-api:latest'
+  - 'gcr.io/$PROJECT_ID/preview-gateway:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/preview-gateway:latest'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: 'E2_HIGHCPU_8'
+
+substitutions:
+  _SLACK_WEBHOOK_URL: 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK'
+  _SERVICE_URL_HASH: '${SHORT_SHA}'
+
+timeout: '1800s' 

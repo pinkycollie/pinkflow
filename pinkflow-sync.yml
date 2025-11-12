@@ -1,0 +1,182 @@
+name: Pinkflow Sync
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'pinkflow/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'pinkflow/**'
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        required: true
+        default: 'sync'
+        type: choice
+        options:
+          - sync
+          - build
+          - deploy
+          - pinksync
+      project:
+        description: 'Project name (for build/deploy)'
+        required: false
+        type: string
+      environment:
+        description: 'Deployment environment'
+        required: false
+        default: 'preview'
+        type: choice
+        options:
+          - preview
+          - staging
+          - production
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  pinkflow-sync:
+    runs-on: ubuntu-latest
+    name: Pinkflow ${{ github.event.inputs.action || 'sync' }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: pinkflow/package-lock.json
+
+      - name: Install dependencies
+        working-directory: pinkflow
+        run: npm ci
+
+      - name: Build Pinkflow CLI
+        working-directory: pinkflow
+        run: npm run build
+
+      - name: Setup environment
+        run: |
+          echo "GITHUB_APP_ID=${{ secrets.GITHUB_APP_ID }}" >> $GITHUB_ENV
+          echo "GITHUB_CLIENT_ID=${{ secrets.GITHUB_CLIENT_ID }}" >> $GITHUB_ENV
+          echo "GITHUB_CLIENT_SECRET=${{ secrets.GITHUB_CLIENT_SECRET }}" >> $GITHUB_ENV
+          echo "GITHUB_PRIVATE_KEY=${{ secrets.GITHUB_PRIVATE_KEY }}" >> $GITHUB_ENV
+          echo "GITHUB_WEBHOOK_SECRET=${{ secrets.GITHUB_WEBHOOK_SECRET }}" >> $GITHUB_ENV
+          echo "VERCEL_TOKEN=${{ secrets.VERCEL_TOKEN }}" >> $GITHUB_ENV
+          echo "VERCEL_TEAM_ID=${{ secrets.VERCEL_TEAM_ID }}" >> $GITHUB_ENV
+          echo "NOTION_TOKEN=${{ secrets.NOTION_TOKEN }}" >> $GITHUB_ENV
+          echo "NOTION_DATABASE_ID=${{ secrets.NOTION_DATABASE_ID }}" >> $GITHUB_ENV
+          echo "CLAUDE_API_KEY=${{ secrets.CLAUDE_API_KEY }}" >> $GITHUB_ENV
+          echo "PINKFLOW_ENCRYPTION_KEY=${{ secrets.PINKFLOW_ENCRYPTION_KEY }}" >> $GITHUB_ENV
+
+      - name: Run Pinkflow sync
+        if: github.event.inputs.action == 'sync' || github.event.inputs.action == ''
+        working-directory: pinkflow
+        run: npm start sync --all
+
+      - name: Run Pinkflow build
+        if: github.event.inputs.action == 'build'
+        working-directory: pinkflow
+        run: |
+          npm start build ${{ github.event.inputs.project }} \
+            --framework nextjs \
+            --database neon \
+            --auth deafauth \
+            --realtime socketio \
+            --ui shadcn \
+            --features accessibility,deaf-first,pinksync
+
+      - name: Run Pinkflow deploy
+        if: github.event.inputs.action == 'deploy'
+        working-directory: pinkflow
+        run: |
+          npm start deploy ${{ github.event.inputs.project }} \
+            --${{ github.event.inputs.environment }} \
+            --tag main
+
+      - name: Run Pinkflow pinksync
+        if: github.event.inputs.action == 'pinksync'
+        working-directory: pinkflow
+        run: |
+          npm start pinksync https://${{ github.event.inputs.project }}.vercel.app \
+            --tag pinksync-verified
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pinkflow-logs
+          path: pinkflow/logs/
+          retention-days: 7
+
+  notify:
+    needs: pinkflow-sync
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+      - name: Notify on success
+        if: needs.pinkflow-sync.result == 'success'
+        run: |
+          echo "✅ Pinkflow ${{ github.event.inputs.action || 'sync' }} completed successfully"
+          
+      - name: Notify on failure
+        if: needs.pinkflow-sync.result == 'failure'
+        run: |
+          echo "❌ Pinkflow ${{ github.event.inputs.action || 'sync' }} failed"
+          
+      - name: Download logs
+        if: needs.pinkflow-sync.result == 'failure'
+        uses: actions/download-artifact@v4
+        with:
+          name: pinkflow-logs
+          path: logs/
+
+      - name: Create issue on failure
+        if: needs.pinkflow-sync.result == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let logContent = 'No logs available';
+            
+            try {
+              if (fs.existsSync('logs/')) {
+                const files = fs.readdirSync('logs/');
+                if (files.length > 0) {
+                  logContent = fs.readFileSync(`logs/${files[0]}`, 'utf8');
+                }
+              }
+            } catch (error) {
+              logContent = `Error reading logs: ${error.message}`;
+            }
+            
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Pinkflow ${{ github.event.inputs.action || 'sync' }} failed`,
+              body: `
+                ## Pinkflow Automation Failed
+                
+                **Action:** ${{ github.event.inputs.action || 'sync' }}
+                **Project:** ${{ github.event.inputs.project || 'N/A' }}
+                **Environment:** ${{ github.event.inputs.environment || 'N/A' }}
+                **Workflow:** ${{ github.workflow }}
+                **Run ID:** ${{ github.run_id }}
+                
+                ### Logs
+                \`\`\`
+                ${logContent}
+                \`\`\`
+                
+                Please check the logs and fix any issues.
+              `,
+              labels: ['pinkflow', 'automation', 'bug'],
+            }); 

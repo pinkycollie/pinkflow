@@ -1,0 +1,152 @@
+name: Validate Documentation
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - '**/*.md'
+      - '**/*.ts'
+      - '**/*.js'
+      - '**/*.json'
+  push:
+    branches: [ main, develop ]
+    paths:
+      - '**/*.md'
+      - '**/*.ts'
+      - '**/*.js'
+      - '**/*.json'
+
+jobs:
+  validate-docs:
+    runs-on: ubuntu-latest
+    name: Validate Documentation Completeness
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm install -g markdownlint-cli
+          npm install -g @textlint/textlint
+          npm install -g @textlint/markdown
+
+      - name: Check for required documentation files
+        id: check-required-docs
+        run: |
+          echo "Checking for required documentation files..."
+          
+          # Check for README files in main directories
+          MISSING_README=""
+          for dir in pinkflow deafauth pinksync mbtq.dev; do
+            if [ -d "$dir" ] && [ ! -f "$dir/README.md" ]; then
+              MISSING_README="$MISSING_README $dir"
+            fi
+          done
+          
+          # Check for ARCHITECTURE.md
+          if [ ! -f "pinkflow/ARCHITECTURE.md" ]; then
+            MISSING_README="$MISSING_README pinkflow/ARCHITECTURE.md"
+          fi
+          
+          # Check for package.json files
+          MISSING_PACKAGE=""
+          for dir in pinkflow deafauth pinksync mbtq.dev; do
+            if [ -d "$dir" ] && [ ! -f "$dir/package.json" ]; then
+              MISSING_PACKAGE="$MISSING_PACKAGE $dir"
+            fi
+          done
+          
+          echo "missing_readme=$MISSING_README" >> $GITHUB_OUTPUT
+          echo "missing_package=$MISSING_PACKAGE" >> $GITHUB_OUTPUT
+          
+          if [ -n "$MISSING_README" ]; then
+            echo "❌ Missing README files: $MISSING_README"
+          else
+            echo "✅ All required README files present"
+          fi
+          
+          if [ -n "$MISSING_PACKAGE" ]; then
+            echo "❌ Missing package.json files: $MISSING_PACKAGE"
+          else
+            echo "✅ All required package.json files present"
+          fi
+
+      - name: Validate Markdown syntax
+        run: |
+          echo "Validating Markdown syntax..."
+          
+          # Find all markdown files
+          find . -name "*.md" -not -path "./node_modules/*" -not -path "./.git/*" | while read file; do
+            echo "Checking $file..."
+            
+            # Basic markdown linting
+            markdownlint "$file" || echo "⚠️  Markdown issues found in $file"
+            
+            # Check for broken links (basic check)
+            if grep -q "\[.*\](" "$file"; then
+              echo "🔗 Found links in $file - manual review recommended"
+            fi
+          done
+
+      - name: Check for Mermaid diagrams
+        run: |
+          echo "Checking for Mermaid diagrams..."
+          
+          MERMAID_FILES=$(find . -name "*.md" -exec grep -l "```mermaid" {} \; || true)
+          
+          if [ -n "$MERMAID_FILES" ]; then
+            echo "📊 Found Mermaid diagrams in:"
+            echo "$MERMAID_FILES"
+          else
+            echo "ℹ️  No Mermaid diagrams found"
+          fi
+
+      - name: Validate TypeScript documentation
+        run: |
+          echo "Validating TypeScript documentation..."
+          
+          # Check for JSDoc comments in TypeScript files
+          TS_FILES=$(find . -name "*.ts" -not -path "./node_modules/*" -not -path "./.git/*" | head -10)
+          
+          for file in $TS_FILES; do
+            if [ -f "$file" ]; then
+              # Check for basic documentation patterns
+              if ! grep -q "/\*\*" "$file" && ! grep -q "// TODO" "$file"; then
+                echo "ℹ️  Consider adding JSDoc comments to $file"
+              fi
+            fi
+          done
+
+      - name: Create validation report
+        if: always()
+        run: |
+          echo "## 📋 Documentation Validation Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -n "${{ steps.check-required-docs.outputs.missing_readme }}" ]; then
+            echo "❌ **Missing README files:** ${{ steps.check-required-docs.outputs.missing_readme }}" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ **All required README files present**" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ -n "${{ steps.check-required-docs.outputs.missing_package }}" ]; then
+            echo "❌ **Missing package.json files:** ${{ steps.check-required-docs.outputs.missing_package }}" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ **All required package.json files present**" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📊 **Validation completed** - Check the logs above for detailed results." >> $GITHUB_STEP_SUMMARY
+
+      - name: Fail on critical issues
+        if: steps.check-required-docs.outputs.missing_readme != '' || steps.check-required-docs.outputs.missing_package != ''
+        run: |
+          echo "❌ Critical documentation issues found. Please add missing files before merging."
+          exit 1 

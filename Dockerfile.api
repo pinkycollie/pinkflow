@@ -1,0 +1,59 @@
+# Use Node.js 18 Alpine for smaller image size
+FROM node:18-alpine AS base
+
+# Install dependencies only when needed
+FROM base AS deps
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+COPY pinkflow/package*.json ./pinkflow/
+
+# Install dependencies
+RUN npm ci --only=production
+
+# Rebuild the source code only when needed
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+# Build the application
+RUN npm run build
+
+# Production image, copy all the files and run the app
+FROM base AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV PORT=3001
+
+# Create a non-root user
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 pinkflow
+
+# Copy built application
+COPY --from=builder /app/pinkflow/dist ./dist
+COPY --from=builder /app/pinkflow/node_modules ./node_modules
+COPY --from=builder /app/pinkflow/package*.json ./
+
+# Copy necessary files
+COPY --from=builder /app/pinkflow/config ./config
+COPY --from=builder /app/pinkflow/utils ./utils
+COPY --from=builder /app/pinkflow/services ./services
+COPY --from=builder /app/pinkflow/api ./api
+COPY --from=builder /app/pinkflow/workers ./workers
+
+# Change ownership to non-root user
+RUN chown -R pinkflow:nodejs /app
+
+USER pinkflow
+
+EXPOSE 3001
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3001/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
+
+CMD ["node", "dist/index.js"] 

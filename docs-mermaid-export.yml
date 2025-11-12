@@ -1,0 +1,91 @@
+name: Export Mermaid Diagrams
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - '**/*.md'
+      - '**/*.mmd'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - '**/*.md'
+      - '**/*.mmd'
+
+jobs:
+  export-mermaid:
+    runs-on: ubuntu-latest
+    name: Export Mermaid Diagrams to SVG/PNG
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm install -g @mermaid-js/mermaid-cli
+          npm install -g puppeteer
+
+      - name: Find Mermaid diagrams
+        id: find-diagrams
+        run: |
+          echo "Searching for Mermaid diagrams..."
+          DIAGRAMS=$(find . -name "*.md" -o -name "*.mmd" | xargs grep -l "```mermaid" || true)
+          echo "diagrams=$DIAGRAMS" >> $GITHUB_OUTPUT
+          echo "Found diagrams: $DIAGRAMS"
+
+      - name: Export diagrams to SVG
+        if: steps.find-diagrams.outputs.diagrams != ''
+        run: |
+          mkdir -p docs/diagrams
+          
+          # Extract and export each Mermaid diagram
+          find . -name "*.md" -o -name "*.mmd" | while read file; do
+            if grep -q "```mermaid" "$file"; then
+              echo "Processing $file..."
+              
+              # Extract diagram name from filename
+              filename=$(basename "$file" | sed 's/\.[^.]*$//')
+              
+              # Extract Mermaid content and save to temp file
+              awk '/```mermaid/,/```/' "$file" | sed '1d;$d' > "temp_diagram.mmd"
+              
+              if [ -s "temp_diagram.mmd" ]; then
+                # Export to SVG
+                mmdc -i "temp_diagram.mmd" -o "docs/diagrams/${filename}.svg" -b transparent
+                
+                # Export to PNG
+                mmdc -i "temp_diagram.mmd" -o "docs/diagrams/${filename}.png" -b transparent
+                
+                echo "Exported ${filename}.svg and ${filename}.png"
+              fi
+              
+              rm -f "temp_diagram.mmd"
+            fi
+          done
+
+      - name: Commit and push diagrams
+        if: steps.find-diagrams.outputs.diagrams != ''
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          
+          if [ -d "docs/diagrams" ] && [ "$(ls -A docs/diagrams)" ]; then
+            git add docs/diagrams/
+            git commit -m "Auto-export Mermaid diagrams to SVG/PNG" || echo "No changes to commit"
+            git push || echo "No changes to push"
+          fi
+
+      - name: Upload diagrams as artifacts
+        if: steps.find-diagrams.outputs.diagrams != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: mermaid-diagrams
+          path: docs/diagrams/
+          retention-days: 30 
