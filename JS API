@@ -1,0 +1,606 @@
+// ============================================
+// FILE STRUCTURE:
+// ============================================
+// /api/pinkflow/v1/
+//   ├── models.js
+//   ├── models/[id].js
+//   ├── test/start.js
+//   ├── test/[id]/status.js
+//   ├── results/[id].js
+//   ├── results/leaderboard.js
+//   ├── deploy.js
+//   ├── stats.js
+//   └── webhook/github.js
+// /lib/
+//   ├── firebase.js
+//   ├── deafauth.js
+//   ├── fibronrose.js
+//   └── testRunner.js
+
+// ============================================
+// /lib/firebase.js - Firebase Setup
+// ============================================
+import { initializeApp } from ‘firebase/app’;
+import { getFirestore, collection, doc, getDocs, getDoc, setDoc, updateDoc, deleteDoc, query, where, orderBy, limit } from ‘firebase/firestore’;
+
+const firebaseConfig = {
+apiKey: process.env.FIREBASE_API_KEY,
+authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+projectId: process.env.FIREBASE_PROJECT_ID,
+storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+appId: process.env.FIREBASE_APP_ID
+};
+
+const app = initializeApp(firebaseConfig);
+export const db = getFirestore(app);
+
+// ============================================
+// /lib/deafauth.js - Authentication Middleware
+// ============================================
+import jwt from ‘jsonwebtoken’;
+
+export async function verifyDeafAuth(req) {
+const authHeader = req.headers.authorization;
+
+if (!authHeader || !authHeader.startsWith(’Bearer ’)) {
+return { valid: false, error: ‘Missing or invalid authorization header’ };
+}
+
+const token = authHeader.substring(7);
+
+try {
+// Verify JWT with DeafAUTH public key
+const decoded = jwt.verify(token, process.env.DEAFAUTH_PUBLIC_KEY);
+
+```
+// Additional validation against DeafAUTH service
+const authResponse = await fetch('https://auth.mbtq.dev/validate', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ token })
+});
+
+if (!authResponse.ok) {
+  return { valid: false, error: 'Token validation failed' };
+}
+
+return { valid: true, user: decoded };
+```
+
+} catch (error) {
+return { valid: false, error: error.message };
+}
+}
+
+export function requireAuth(handler) {
+return async (req, res) => {
+const auth = await verifyDeafAuth(req);
+
+```
+if (!auth.valid) {
+  return res.status(401).json({ error: auth.error });
+}
+
+req.user = auth.user;
+return handler(req, res);
+```
+
+};
+}
+
+// ============================================
+// /lib/fibronrose.js - Trust Validation
+// ============================================
+export async function logToFibronrose(event, data) {
+try {
+const response = await fetch(‘https://api.mbtq.dev/fibronrose/log’, {
+method: ‘POST’,
+headers: {
+‘Content-Type’: ‘application/json’,
+‘Authorization’: `Bearer ${process.env.FIBRONROSE_API_KEY}`
+},
+body: JSON.stringify({
+event,
+data,
+timestamp: new Date().toISOString(),
+source: ‘pinkflow’
+})
+});
+
+```
+const result = await response.json();
+return result;
+```
+
+} catch (error) {
+console.error(‘Fibronrose logging failed:’, error);
+return null;
+}
+}
+
+export async function calculateTrustScore(modelId, testResults) {
+// Calculate trust score based on:
+// - Test accuracy
+// - Deaf-first metrics
+// - Community validation
+// - Blockchain verification
+
+const baseScore = testResults.accuracy * 0.4 +
+testResults.deafScore * 0.6;
+
+// Log to blockchain via Fibronrose
+const blockchainHash = await logToFibronrose(‘trust_score’, {
+modelId,
+score: baseScore,
+metrics: testResults
+});
+
+return {
+trustScore: baseScore,
+blockchainHash: blockchainHash?.hash || null,
+reputationImpact: baseScore >= 90 ? ‘positive’ : baseScore >= 70 ? ‘neutral’ : ‘negative’
+};
+}
+
+// ============================================
+// /lib/testRunner.js - Model Testing Logic
+// ============================================
+export async function startModelTest(modelId, options = {}) {
+const testId = `test_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+// Create test record in Firestore
+await setDoc(doc(db, ‘tests’, testId), {
+testId,
+modelId,
+status: ‘queued’,
+dataset: options.dataset || ‘WLASL’,
+computeType: options.computeType || ‘cuda’,
+progress: 0,
+currentStage: ‘setup’,
+createdAt: new Date().toISOString(),
+logs: []
+});
+
+// Trigger async test execution (PinkSync + 360Magicians)
+triggerTestExecution(testId, modelId, options);
+
+return testId;
+}
+
+async function triggerTestExecution(testId, modelId, options) {
+try {
+// This would call your actual testing infrastructure
+// For now, simulating with PinkSync orchestration endpoint
+await fetch(‘https://api.mbtq.dev/pinksync/execute’, {
+method: ‘POST’,
+headers: {
+‘Content-Type’: ‘application/json’,
+‘Authorization’: `Bearer ${process.env.PINKSYNC_API_KEY}`
+},
+body: JSON.stringify({
+task: ‘test_model’,
+testId,
+modelId,
+options,
+magician: ‘360Magicians.TestOrchestrator’
+})
+});
+} catch (error) {
+// Update test status to failed
+await updateDoc(doc(db, ‘tests’, testId), {
+status: ‘failed’,
+error: error.message
+});
+}
+}
+
+// ============================================
+// /api/pinkflow/v1/models.js
+// ============================================
+import { requireAuth } from ‘../../../lib/deafauth’;
+import { db } from ‘../../../lib/firebase’;
+import { collection, getDocs, addDoc, query, where, orderBy, limit as limitQuery } from ‘firebase/firestore’;
+import { logToFibronrose } from ‘../../../lib/fibronrose’;
+
+async function handler(req, res) {
+if (req.method === ‘GET’) {
+// Get list of models with filters
+const { status, task, search, limit = 50, offset = 0 } = req.query;
+
+```
+let q = collection(db, 'models');
+
+if (status && status !== 'all') {
+  q = query(q, where('status', '==', status));
+}
+if (task) {
+  q = query(q, where('task', '==', task));
+}
+
+q = query(q, orderBy('createdAt', 'desc'), limitQuery(parseInt(limit)));
+
+const snapshot = await getDocs(q);
+let models = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+// Client-side search filter (Firestore limitations)
+if (search) {
+  models = models.filter(m => 
+    m.name.toLowerCase().includes(search.toLowerCase())
+  );
+}
+
+return res.status(200).json({
+  models,
+  total: models.length,
+  page: {
+    limit: parseInt(limit),
+    offset: parseInt(offset),
+    hasNext: models.length === parseInt(limit)
+  }
+});
+```
+
+} else if (req.method === ‘POST’) {
+// Add new model
+const { name, task, repo, paper, dataset, pretrainedWeights, priority = ‘normal’ } = req.body;
+
+```
+if (!name || !task || !repo) {
+  return res.status(400).json({ error: 'Missing required fields: name, task, repo' });
+}
+
+const modelData = {
+  name,
+  task,
+  repo,
+  paper: paper || null,
+  dataset: dataset || null,
+  pretrainedWeights: pretrainedWeights || null,
+  priority,
+  status: 'queued',
+  accuracy: null,
+  fps: null,
+  deafScore: null,
+  createdAt: new Date().toISOString(),
+  testedAt: null,
+  createdBy: req.user.uid
+};
+
+const docRef = await addDoc(collection(db, 'models'), modelData);
+
+// Log to Fibronrose
+await logToFibronrose('model_added', {
+  modelId: docRef.id,
+  name,
+  user: req.user.uid
+});
+
+return res.status(201).json({
+  id: docRef.id,
+  ...modelData
+});
+```
+
+} else {
+return res.status(405).json({ error: ‘Method not allowed’ });
+}
+}
+
+export default requireAuth(handler);
+
+// ============================================
+// /api/pinkflow/v1/models/[id].js
+// ============================================
+import { requireAuth } from ‘../../../../lib/deafauth’;
+import { db } from ‘../../../../lib/firebase’;
+import { doc, getDoc, updateDoc, deleteDoc } from ‘firebase/firestore’;
+
+async function handler(req, res) {
+const { id } = req.query;
+
+if (req.method === ‘GET’) {
+const docRef = doc(db, ‘models’, id);
+const docSnap = await getDoc(docRef);
+
+```
+if (!docSnap.exists()) {
+  return res.status(404).json({ error: 'Model not found' });
+}
+
+return res.status(200).json({
+  id: docSnap.id,
+  ...docSnap.data()
+});
+```
+
+} else if (req.method === ‘PATCH’) {
+const updates = req.body;
+const docRef = doc(db, ‘models’, id);
+
+```
+await updateDoc(docRef, {
+  ...updates,
+  updatedAt: new Date().toISOString()
+});
+
+const updated = await getDoc(docRef);
+
+return res.status(200).json({
+  id: updated.id,
+  ...updated.data()
+});
+```
+
+} else if (req.method === ‘DELETE’) {
+await deleteDoc(doc(db, ‘models’, id));
+
+```
+return res.status(204).end();
+```
+
+} else {
+return res.status(405).json({ error: ‘Method not allowed’ });
+}
+}
+
+export default requireAuth(handler);
+
+// ============================================
+// /api/pinkflow/v1/test/start.js
+// ============================================
+import { requireAuth } from ‘../../../../lib/deafauth’;
+import { startModelTest } from ‘../../../../lib/testRunner’;
+import { db } from ‘../../../../lib/firebase’;
+import { doc, updateDoc } from ‘firebase/firestore’;
+
+async function handler(req, res) {
+if (req.method !== ‘POST’) {
+return res.status(405).json({ error: ‘Method not allowed’ });
+}
+
+const { modelId, dataset, computeType, maxDuration } = req.body;
+
+if (!modelId) {
+return res.status(400).json({ error: ‘modelId is required’ });
+}
+
+// Start test
+const testId = await startModelTest(modelId, {
+dataset: dataset || ‘WLASL’,
+computeType: computeType || ‘cuda’,
+maxDuration: maxDuration || 3600
+});
+
+// Update model status
+await updateDoc(doc(db, ‘models’, modelId), {
+status: ‘testing’
+});
+
+return res.status(202).json({
+testId,
+modelId,
+status: ‘queued’,
+startedAt: new Date().toISOString(),
+estimatedCompletion: new Date(Date.now() + 3600000).toISOString()
+});
+}
+
+export default requireAuth(handler);
+
+// ============================================
+// /api/pinkflow/v1/test/[id]/status.js
+// ============================================
+import { requireAuth } from ‘../../../../../lib/deafauth’;
+import { db } from ‘../../../../../lib/firebase’;
+import { doc, getDoc } from ‘firebase/firestore’;
+
+async function handler(req, res) {
+if (req.method !== ‘GET’) {
+return res.status(405).json({ error: ‘Method not allowed’ });
+}
+
+const { id } = req.query;
+
+const testDoc = await getDoc(doc(db, ‘tests’, id));
+
+if (!testDoc.exists()) {
+return res.status(404).json({ error: ‘Test not found’ });
+}
+
+return res.status(200).json({
+testId: testDoc.id,
+…testDoc.data()
+});
+}
+
+export default requireAuth(handler);
+
+// ============================================
+// /api/pinkflow/v1/results/[id].js
+// ============================================
+import { requireAuth } from ‘../../../../lib/deafauth’;
+import { db } from ‘../../../../lib/firebase’;
+import { doc, getDoc } from ‘firebase/firestore’;
+
+async function handler(req, res) {
+if (req.method !== ‘GET’) {
+return res.status(405).json({ error: ‘Method not allowed’ });
+}
+
+const { id } = req.query;
+
+const resultDoc = await getDoc(doc(db, ‘results’, id));
+
+if (!resultDoc.exists()) {
+return res.status(404).json({ error: ‘Results not found’ });
+}
+
+return res.status(200).json({
+modelId: resultDoc.id,
+…resultDoc.data()
+});
+}
+
+export default requireAuth(handler);
+
+// ============================================
+// /api/pinkflow/v1/results/leaderboard.js
+// ============================================
+import { requireAuth } from ‘../../../../lib/deafauth’;
+import { db } from ‘../../../../lib/firebase’;
+import { collection, getDocs, query, where, orderBy, limit as limitQuery } from ‘firebase/firestore’;
+
+async function handler(req, res) {
+if (req.method !== ‘GET’) {
+return res.status(405).json({ error: ‘Method not allowed’ });
+}
+
+const { task, sortBy = ‘combined’, limit = 10 } = req.query;
+
+let q = query(
+collection(db, ‘models’),
+where(‘status’, ‘==’, ‘tested’)
+);
+
+if (task) {
+q = query(q, where(‘task’, ‘==’, task));
+}
+
+const snapshot = await getDocs(q);
+let models = snapshot.docs.map(doc => ({ id: doc.id, …doc.data() }));
+
+// Sort by requested metric
+models.sort((a, b) => {
+if (sortBy === ‘accuracy’) return (b.accuracy || 0) - (a.accuracy || 0);
+if (sortBy === ‘fps’) return (b.fps || 0) - (a.fps || 0);
+if (sortBy === ‘deafScore’) return (b.deafScore || 0) - (a.deafScore || 0);
+// Combined score
+const scoreA = (a.accuracy || 0) * 0.3 + (a.fps || 0) * 0.2 + (a.deafScore || 0) * 0.5;
+const scoreB = (b.accuracy || 0) * 0.3 + (b.fps || 0) * 0.2 + (b.deafScore || 0) * 0.5;
+return scoreB - scoreA;
+});
+
+const leaderboard = models.slice(0, parseInt(limit)).map((model, index) => ({
+rank: index + 1,
+model
+}));
+
+return res.status(200).json({ leaderboard });
+}
+
+export default requireAuth(handler);
+
+// ============================================
+// /api/pinkflow/v1/stats.js
+// ============================================
+import { requireAuth } from ‘../../../lib/deafauth’;
+import { db } from ‘../../../lib/firebase’;
+import { collection, getDocs, query, where } from ‘firebase/firestore’;
+
+async function handler(req, res) {
+if (req.method !== ‘GET’) {
+return res.status(405).json({ error: ‘Method not allowed’ });
+}
+
+const modelsSnapshot = await getDocs(collection(db, ‘models’));
+const models = modelsSnapshot.docs.map(doc => doc.data());
+
+const testedModels = models.filter(m => m.status === ‘tested’);
+
+const stats = {
+totalModels: models.length,
+testedModels: testedModels.length,
+avgAccuracy: testedModels.reduce((sum, m) => sum + (m.accuracy || 0), 0) / testedModels.length || 0,
+avgDeafScore: testedModels.reduce((sum, m) => sum + (m.deafScore || 0), 0) / testedModels.length || 0,
+avgFps: testedModels.reduce((sum, m) => sum + (m.fps || 0), 0) / testedModels.length || 0,
+taskBreakdown: {
+SLR: models.filter(m => m.task === ‘SLR’).length,
+SLT: models.filter(m => m.task === ‘SLT’).length,
+SLP: models.filter(m => m.task === ‘SLP’).length,
+Pose: models.filter(m => m.task === ‘Pose’).length
+}
+};
+
+return res.status(200).json(stats);
+}
+
+export default requireAuth(handler);
+
+// ============================================
+// /api/pinkflow/v1/deploy.js
+// ============================================
+import { requireAuth } from ‘../../../lib/deafauth’;
+import { logToFibronrose } from ‘../../../lib/fibronrose’;
+
+async function handler(req, res) {
+if (req.method !== ‘POST’) {
+return res.status(405).json({ error: ‘Method not allowed’ });
+}
+
+const { modelId, endpoint, region = ‘us-east’, autoScale = true, maxInstances = 3 } = req.body;
+
+if (!modelId || !endpoint) {
+return res.status(400).json({ error: ‘modelId and endpoint are required’ });
+}
+
+// Trigger deployment via PinkSync
+const deploymentId = `dep_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+await fetch(‘https://api.mbtq.dev/pinksync/deploy’, {
+method: ‘POST’,
+headers: {
+‘Content-Type’: ‘application/json’,
+‘Authorization’: `Bearer ${process.env.PINKSYNC_API_KEY}`
+},
+body: JSON.stringify({
+deploymentId,
+modelId,
+endpoint,
+region,
+autoScale,
+maxInstances,
+magician: ‘360Magicians.DeploymentManager’
+})
+});
+
+// Log to Fibronrose
+await logToFibronrose(‘model_deployed’, {
+deploymentId,
+modelId,
+endpoint,
+user: req.user.uid
+});
+
+return res.status(201).json({
+deploymentId,
+modelId,
+endpoint,
+url: `https://api.mbtq.dev/models/${endpoint}`,
+status: ‘deploying’
+});
+}
+
+export default requireAuth(handler);
+
+// ============================================
+// vercel.json - Configuration
+// ============================================
+/*
+{
+“routes”: [
+{
+“src”: “/pinkflow/v1/(.*)”,
+“dest”: “/api/pinkflow/v1/$1”
+}
+],
+“env”: {
+“FIREBASE_API_KEY”: “@firebase-api-key”,
+“FIREBASE_AUTH_DOMAIN”: “@firebase-auth-domain”,
+“FIREBASE_PROJECT_ID”: “@firebase-project-id”,
+“DEAFAUTH_PUBLIC_KEY”: “@deafauth-public-key”,
+“FIBRONROSE_API_KEY”: “@fibronrose-api-key”,
+“PINKSYNC_API_KEY”: “@pinksync-api-key”
+}
+}
+*/
