@@ -71,6 +71,7 @@ build/
 *.min.js
 *.min.css
 *.tgz
+*.tsbuildinfo
 
 # Database
 *.db
