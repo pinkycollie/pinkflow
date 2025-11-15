@@ -41,9 +41,11 @@ workflow-system/
 ├── core/                          # Core workflow components
 │   ├── __init__.py               # Module exports
 │   ├── workflow.py               # Workflow, Node, Edge classes
-│   └── workflow_manager.py       # Manager and registry
+│   ├── workflow_manager.py       # Manager and registry
+│   └── feedback_workflow.py      # Sign language feedback system
 ├── examples/                      # Example workflows
-│   └── example_workflows.py      # Ready-to-use examples
+│   ├── example_workflows.py      # Ready-to-use examples
+│   └── feedback_example.py       # Sign language feedback examples
 └── docs/                         # Documentation
     ├── README.md                 # Main documentation
     ├── API_REFERENCE.md          # Detailed API docs
@@ -71,6 +73,12 @@ workflow-system/
 - Approval workflows
 - Multi-step processes with conditions
 - Event-driven automation
+
+### Sign Language Feedback
+- Video feedback upload and processing
+- Cloud storage integration
+- Real-time admin notifications
+- Deaf-First accessibility workflows
 
 ## 🛠️ Installation
 
