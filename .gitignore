@@ -24,6 +24,13 @@ wheels/
 .installed.cfg
 *.egg
 
+# Next.js
+.next/
+.next-static/
+out/
+.cache/
+.pnpm-store
+
 # IDEs and Editors
 .vscode/
 .idea/
@@ -38,6 +45,7 @@ wheels/
 .env
 .env.local
 .env.*.local
+.env.production
 *.key
 *.pem
 
@@ -62,6 +70,7 @@ dist/
 build/
 *.min.js
 *.min.css
+*.tgz
 
 # Database
 *.db

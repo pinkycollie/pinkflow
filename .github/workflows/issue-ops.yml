@@ -1,0 +1,21 @@
+name: Issue Ops
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  create-task:
+    if: contains(github.event.comment.body, '/task')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create checklist comment
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          body: |
+            ### Task scaffold
+            - [ ] Define goal
+            - [ ] Break down steps
+            - [ ] Assign owner
+            - [ ] Set due date
+            - [ ] Define success criteria
