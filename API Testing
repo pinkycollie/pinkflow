@@ -1,0 +1,630 @@
+openapi: 3.0.3
+info:
+title: PinkFlow API
+description: |
+Sign Language Model Testing & Validation API for MBTQ Universe
+
+```
+**Architecture:**
+- Hosted on: api.mbtq.dev/pinkflow
+- Auth: DeafAUTH tokens
+- Logging: Fibonrose trust validation
+- Orchestration: PinkSync + 360Magicians
+```
+
+version: 1.0.0
+contact:
+name: MBTQ Universe
+url: https://mbtquniverse.com
+
+servers:
+
+- url: https://api.mbtq.dev/pinkflow/v1
+  description: Production API
+- url: http://localhost:3000/pinkflow/v1
+  description: Local Development
+
+security:
+
+- DeafAUTH: []
+
+tags:
+
+- name: Models
+  description: Sign language model operations
+- name: Testing
+  description: Model testing pipeline
+- name: Results
+  description: Test results and metrics
+- name: Deployment
+  description: Model deployment operations
+
+paths:
+/models:
+get:
+summary: List all models
+tags: [Models]
+parameters:
+- name: status
+in: query
+schema:
+type: string
+enum: [all, tested, testing, queued, failed]
+description: Filter by testing status
+- name: task
+in: query
+schema:
+type: string
+enum: [SLR, SLT, SLP, Pose]
+description: Filter by task type
+- name: search
+in: query
+schema:
+type: string
+description: Search model names
+- name: limit
+in: query
+schema:
+type: integer
+default: 50
+description: Max results to return
+- name: offset
+in: query
+schema:
+type: integer
+default: 0
+description: Pagination offset
+responses:
+‘200’:
+description: List of models
+content:
+application/json:
+schema:
+type: object
+properties:
+models:
+type: array
+items:
+$ref: ‘#/components/schemas/Model’
+total:
+type: integer
+page:
+type: object
+properties:
+limit:
+type: integer
+offset:
+type: integer
+hasNext:
+type: boolean
+
+```
+post:
+  summary: Add new model for testing
+  tags: [Models]
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required: [name, task, repo]
+          properties:
+            name:
+              type: string
+              example: "SignBERT-V2"
+            task:
+              type: string
+              enum: [SLR, SLT, SLP, Pose]
+            repo:
+              type: string
+              format: uri
+              example: "https://github.com/user/repo"
+            paper:
+              type: string
+              format: uri
+              example: "https://arxiv.org/abs/1234.5678"
+            dataset:
+              type: string
+              example: "WLASL"
+            pretrainedWeights:
+              type: string
+              format: uri
+            priority:
+              type: string
+              enum: [low, normal, high]
+              default: normal
+  responses:
+    '201':
+      description: Model added to queue
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Model'
+```
+
+/models/{modelId}:
+get:
+summary: Get model details
+tags: [Models]
+parameters:
+- name: modelId
+in: path
+required: true
+schema:
+type: string
+responses:
+‘200’:
+description: Model details
+content:
+application/json:
+schema:
+$ref: ‘#/components/schemas/Model’
+
+```
+patch:
+  summary: Update model metadata
+  tags: [Models]
+  parameters:
+    - name: modelId
+      in: path
+      required: true
+      schema:
+        type: string
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            name:
+              type: string
+            priority:
+              type: string
+              enum: [low, normal, high]
+            notes:
+              type: string
+  responses:
+    '200':
+      description: Model updated
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Model'
+
+delete:
+  summary: Remove model from queue
+  tags: [Models]
+  parameters:
+    - name: modelId
+      in: path
+      required: true
+      schema:
+        type: string
+  responses:
+    '204':
+      description: Model removed
+```
+
+/test/start:
+post:
+summary: Start testing a model
+tags: [Testing]
+requestBody:
+required: true
+content:
+application/json:
+schema:
+type: object
+required: [modelId]
+properties:
+modelId:
+type: string
+dataset:
+type: string
+enum: [WLASL, PHOENIX, CSL, MBTQ-Custom]
+default: WLASL
+computeType:
+type: string
+enum: [cpu, cuda, rocm]
+default: cuda
+maxDuration:
+type: integer
+description: Max test duration in seconds
+default: 3600
+responses:
+‘202’:
+description: Test started
+content:
+application/json:
+schema:
+type: object
+properties:
+testId:
+type: string
+modelId:
+type: string
+status:
+type: string
+enum: [queued, running]
+startedAt:
+type: string
+format: date-time
+estimatedCompletion:
+type: string
+format: date-time
+
+/test/{testId}/status:
+get:
+summary: Get test status
+tags: [Testing]
+parameters:
+- name: testId
+in: path
+required: true
+schema:
+type: string
+responses:
+‘200’:
+description: Test status
+content:
+application/json:
+schema:
+type: object
+properties:
+testId:
+type: string
+modelId:
+type: string
+status:
+type: string
+enum: [queued, running, completed, failed]
+progress:
+type: number
+format: float
+minimum: 0
+maximum: 100
+currentStage:
+type: string
+enum: [setup, inference, evaluation, logging]
+logs:
+type: array
+items:
+type: object
+properties:
+timestamp:
+type: string
+format: date-time
+level:
+type: string
+enum: [info, warning, error]
+message:
+type: string
+
+/test/{testId}/cancel:
+post:
+summary: Cancel running test
+tags: [Testing]
+parameters:
+- name: testId
+in: path
+required: true
+schema:
+type: string
+responses:
+‘200’:
+description: Test cancelled
+
+/results/{modelId}:
+get:
+summary: Get test results for model
+tags: [Results]
+parameters:
+- name: modelId
+in: path
+required: true
+schema:
+type: string
+responses:
+‘200’:
+description: Test results
+content:
+application/json:
+schema:
+$ref: ‘#/components/schemas/TestResult’
+
+/results/leaderboard:
+get:
+summary: Get model leaderboard
+tags: [Results]
+parameters:
+- name: task
+in: query
+schema:
+type: string
+enum: [SLR, SLT, SLP, Pose]
+- name: sortBy
+in: query
+schema:
+type: string
+enum: [accuracy, fps, deafScore, combined]
+default: combined
+- name: limit
+in: query
+schema:
+type: integer
+default: 10
+responses:
+‘200’:
+description: Ranked models
+content:
+application/json:
+schema:
+type: object
+properties:
+leaderboard:
+type: array
+items:
+type: object
+properties:
+rank:
+type: integer
+model:
+$ref: ‘#/components/schemas/Model’
+results:
+$ref: ‘#/components/schemas/TestResult’
+
+/deploy:
+post:
+summary: Deploy model to production
+tags: [Deployment]
+requestBody:
+required: true
+content:
+application/json:
+schema:
+type: object
+required: [modelId, endpoint]
+properties:
+modelId:
+type: string
+endpoint:
+type: string
+description: Endpoint name for deployment
+example: “asl-recognition-v1”
+region:
+type: string
+enum: [us-east, us-west, eu, asia]
+default: us-east
+autoScale:
+type: boolean
+default: true
+maxInstances:
+type: integer
+default: 3
+responses:
+‘201’:
+description: Deployment initiated
+content:
+application/json:
+schema:
+type: object
+properties:
+deploymentId:
+type: string
+modelId:
+type: string
+endpoint:
+type: string
+url:
+type: string
+format: uri
+example: “https://api.mbtq.dev/models/asl-recognition-v1”
+status:
+type: string
+enum: [deploying, ready]
+
+/stats:
+get:
+summary: Get overall statistics
+tags: [Results]
+responses:
+‘200’:
+description: Platform statistics
+content:
+application/json:
+schema:
+type: object
+properties:
+totalModels:
+type: integer
+testedModels:
+type: integer
+avgAccuracy:
+type: number
+format: float
+avgDeafScore:
+type: number
+format: float
+avgFps:
+type: number
+format: float
+taskBreakdown:
+type: object
+properties:
+SLR:
+type: integer
+SLT:
+type: integer
+SLP:
+type: integer
+Pose:
+type: integer
+
+/webhook/github:
+post:
+summary: GitHub webhook for auto-discovery
+tags: [Models]
+description: |
+Automatically discovers new models from Awesome-SLP repo updates
+requestBody:
+content:
+application/json:
+schema:
+type: object
+responses:
+‘200’:
+description: Webhook processed
+
+components:
+schemas:
+Model:
+type: object
+properties:
+id:
+type: string
+example: “mdl_abc123”
+name:
+type: string
+example: “SignBERT”
+task:
+type: string
+enum: [SLR, SLT, SLP, Pose]
+status:
+type: string
+enum: [queued, testing, tested, failed]
+repo:
+type: string
+format: uri
+paper:
+type: string
+format: uri
+dataset:
+type: string
+accuracy:
+type: number
+format: float
+nullable: true
+fps:
+type: number
+format: float
+nullable: true
+deafScore:
+type: number
+format: float
+nullable: true
+description: Deaf-first compatibility score (0-100)
+fibroseScore:
+type: number
+format: float
+nullable: true
+description: Trust validation from Fibonrose
+createdAt:
+type: string
+format: date-time
+testedAt:
+type: string
+format: date-time
+nullable: true
+metadata:
+type: object
+additionalProperties: true
+
+```
+TestResult:
+  type: object
+  properties:
+    testId:
+      type: string
+    modelId:
+      type: string
+    dataset:
+      type: string
+    metrics:
+      type: object
+      properties:
+        accuracy:
+          type: number
+          format: float
+        precision:
+          type: number
+          format: float
+        recall:
+          type: number
+          format: float
+        f1Score:
+          type: number
+          format: float
+        fps:
+          type: number
+          format: float
+    deafFirstMetrics:
+      type: object
+      properties:
+        visualClarity:
+          type: number
+          format: float
+          description: Visual output quality (0-100)
+        aslAccuracy:
+          type: number
+          format: float
+          description: ASL-specific accuracy
+        noAudioDependency:
+          type: boolean
+        realTimeCapable:
+          type: boolean
+        overallScore:
+          type: number
+          format: float
+    infrastructure:
+      type: object
+      properties:
+        computeType:
+          type: string
+        memoryUsage:
+          type: number
+          description: Peak memory in MB
+        inferenceTime:
+          type: number
+          description: Avg inference time in ms
+    fibroseValidation:
+      type: object
+      properties:
+        trustScore:
+          type: number
+          format: float
+        reputationImpact:
+          type: string
+          enum: [positive, neutral, negative]
+        blockchainHash:
+          type: string
+          description: Immutable result hash
+    completedAt:
+      type: string
+      format: date-time
+    logs:
+      type: string
+      format: uri
+      description: Link to full test logs
+```
+
+securitySchemes:
+DeafAUTH:
+type: http
+scheme: bearer
+bearerFormat: JWT
+description: |
+DeafAUTH token for MBTQ Universe authentication
+
+```
+    **How to obtain:**
+    1. Authenticate via https://auth.mbtq.dev
+    2. Include token in Authorization header
+    3. Token validated against DeafAUTH + Fibonrose
+    
+    **Scopes:**
+    - `read:models` - View models and results
+    - `write:models` - Add/update models
+    - `test:models` - Trigger testing
+    - `deploy:models` - Deploy to production
+```
