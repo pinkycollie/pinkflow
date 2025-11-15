@@ -52,6 +52,12 @@ PinkFlow is a process-orchestration layer for partners and collaborators who don
 
 ### Planned Features
 
+- **Sign Language Feedback System**: Upload and manage sign language video feedback
+  - Video upload support (.mp4, .mov, .webm)
+  - Cloud storage integration (AWS S3, Firebase)
+  - Real-time admin notifications
+  - Deaf-First accessibility design
+  - See [SIGN_LANGUAGE_FEEDBACK.md](SIGN_LANGUAGE_FEEDBACK.md) for details
 - **Live Backend Integration**: FastAPI services for authentication, workspace, and governance
 - **Real-time Sync**: PinkSync WebSocket service for multi-user collaboration
 - **AI Proxy**: Secure backend proxy for AI API calls

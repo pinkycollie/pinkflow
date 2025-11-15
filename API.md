@@ -463,6 +463,233 @@ Authorization: Bearer {token}
 
 ---
 
+### Sign Language Feedback API
+
+#### Upload Sign Language Feedback
+
+**Status**: 🚧 Planned
+
+**Route**: `/feedback/sign-language` (also accessible via `/api/feedback/sign-language`)
+
+```http
+POST /api/feedback/sign-language
+Authorization: Bearer {token}
+Content-Type: multipart/form-data
+```
+
+**Request Body (multipart/form-data):**
+```
+video: File (required)
+  - Allowed formats: .mp4, .mov, .webm
+  - Maximum size: 100MB
+  - Minimum duration: 1 second
+  - Maximum duration: 5 minutes
+
+description: string (optional)
+  - Maximum length: 1000 characters
+  - Plain text description of feedback content
+
+tags: string[] (optional)
+  - Array of tags for categorization
+  - Examples: ["feature-request", "bug-report", "general"]
+```
+
+**Response:** `201 Created`
+```json
+{
+  "id": "string",
+  "userId": "string",
+  "videoUrl": "string",
+  "thumbnailUrl": "string",
+  "description": "string",
+  "tags": ["string"],
+  "timestamp": "ISO8601 timestamp",
+  "status": "processing|ready|failed",
+  "duration": 0,
+  "fileSize": 0
+}
+```
+
+**Errors:**
+- `400 Bad Request`: Invalid file format or size
+- `401 Unauthorized`: Missing or invalid authentication
+- `413 Payload Too Large`: File exceeds size limit
+- `415 Unsupported Media Type`: Invalid video format
+- `422 Unprocessable Entity`: Video duration out of bounds
+
+---
+
+#### List Sign Language Feedback
+
+**Status**: 🚧 Planned
+
+```http
+GET /api/feedback/sign-language
+Authorization: Bearer {token}
+```
+
+**Query Parameters:**
+- `page` (optional): Page number (default: 1)
+- `limit` (optional): Results per page (default: 20, max: 100)
+- `status` (optional): Filter by status (`processing|ready|failed|all`, default: `ready`)
+- `userId` (optional): Filter by user ID (admin only)
+- `tags` (optional): Filter by tags (comma-separated)
+- `sort` (optional): Sort by field (`timestamp|duration`, default: `timestamp`)
+- `order` (optional): Sort order (`asc|desc`, default: `desc`)
+
+**Response:** `200 OK`
+```json
+{
+  "feedback": [
+    {
+      "id": "string",
+      "userId": "string",
+      "userName": "string",
+      "videoUrl": "string",
+      "thumbnailUrl": "string",
+      "description": "string",
+      "tags": ["string"],
+      "timestamp": "ISO8601 timestamp",
+      "status": "processing|ready|failed",
+      "duration": 0,
+      "views": 0
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 20,
+    "total": 100,
+    "pages": 5
+  }
+}
+```
+
+---
+
+#### Get Specific Feedback
+
+**Status**: 🚧 Planned
+
+```http
+GET /api/feedback/sign-language/{feedbackId}
+Authorization: Bearer {token}
+```
+
+**Response:** `200 OK`
+```json
+{
+  "id": "string",
+  "userId": "string",
+  "userName": "string",
+  "videoUrl": "string",
+  "thumbnailUrl": "string",
+  "description": "string",
+  "tags": ["string"],
+  "timestamp": "ISO8601 timestamp",
+  "status": "processing|ready|failed",
+  "duration": 0,
+  "fileSize": 0,
+  "views": 0,
+  "metadata": {
+    "resolution": "1920x1080",
+    "codec": "h264",
+    "frameRate": 30
+  }
+}
+```
+
+**Errors:**
+- `404 Not Found`: Feedback not found
+- `403 Forbidden`: No permission to access feedback
+
+---
+
+#### Delete Feedback
+
+**Status**: 🚧 Planned
+
+```http
+DELETE /api/feedback/sign-language/{feedbackId}
+Authorization: Bearer {token}
+```
+
+**Response:** `200 OK`
+```json
+{
+  "id": "string",
+  "deleted": true,
+  "timestamp": "ISO8601 timestamp"
+}
+```
+
+**Errors:**
+- `404 Not Found`: Feedback not found
+- `403 Forbidden`: No permission to delete (only owner or admin)
+
+---
+
+#### Update Feedback Description
+
+**Status**: 🚧 Planned
+
+```http
+PATCH /api/feedback/sign-language/{feedbackId}
+Authorization: Bearer {token}
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "description": "string",
+  "tags": ["string"]
+}
+```
+
+**Response:** `200 OK`
+```json
+{
+  "id": "string",
+  "description": "string",
+  "tags": ["string"],
+  "updated": true,
+  "timestamp": "ISO8601 timestamp"
+}
+```
+
+---
+
+#### Get Feedback Statistics (Admin)
+
+**Status**: 🚧 Planned
+
+```http
+GET /api/feedback/sign-language/stats
+Authorization: Bearer {token}
+```
+
+**Response:** `200 OK`
+```json
+{
+  "totalFeedback": 0,
+  "processingCount": 0,
+  "readyCount": 0,
+  "failedCount": 0,
+  "totalDuration": 0,
+  "totalStorageUsed": 0,
+  "topTags": [
+    {
+      "tag": "string",
+      "count": 0
+    }
+  ],
+  "recentUploads": 0,
+  "averageDuration": 0
+}
+```
+
+---
+
 ## Real-time API (PinkSync)
 
 ### WebSocket Connection
@@ -513,6 +740,54 @@ socket.on('notification', (data) => {
 });
 ```
 
+#### feedback:uploaded
+
+Emitted when new sign language feedback is uploaded (admin/moderator only).
+
+```javascript
+socket.on('feedback:uploaded', (data) => {
+  // data: {
+  //   feedbackId: string,
+  //   userId: string,
+  //   userName: string,
+  //   timestamp: string,
+  //   description: string,
+  //   tags: string[]
+  // }
+});
+```
+
+#### feedback:processed
+
+Emitted when video processing is complete.
+
+```javascript
+socket.on('feedback:processed', (data) => {
+  // data: {
+  //   feedbackId: string,
+  //   status: 'ready|failed',
+  //   videoUrl: string,
+  //   thumbnailUrl: string,
+  //   duration: number,
+  //   error?: string
+  // }
+});
+```
+
+#### feedback:deleted
+
+Emitted when feedback is deleted (admin/moderator only).
+
+```javascript
+socket.on('feedback:deleted', (data) => {
+  // data: {
+  //   feedbackId: string,
+  //   deletedBy: string,
+  //   timestamp: string
+  // }
+});
+```
+
 ---
 
 ## Error Handling
@@ -553,6 +828,12 @@ All errors follow this format:
 - `VALIDATION_ERROR`: Request validation failed
 - `RATE_LIMIT_EXCEEDED`: Too many requests
 - `INTERNAL_ERROR`: Internal server error
+- `FILE_TOO_LARGE`: Upload file exceeds size limit
+- `INVALID_FILE_FORMAT`: File format not supported
+- `UPLOAD_FAILED`: File upload failed
+- `PROCESSING_FAILED`: Video processing failed
+- `STORAGE_ERROR`: Cloud storage operation failed
+- `DURATION_OUT_OF_BOUNDS`: Video duration outside acceptable range
 
 ---
 
@@ -563,6 +844,7 @@ Rate limits are applied per user/IP address:
 - **Authentication endpoints**: 5 requests per minute
 - **Read operations**: 100 requests per minute
 - **Write operations**: 30 requests per minute
+- **File uploads (sign language feedback)**: 5 requests per hour
 - **WebSocket connections**: 10 per user
 
 **Rate Limit Headers:**
@@ -598,6 +880,9 @@ Retry-After: 60
 - Workspace CRUD operations
 - Governance voting system
 - Real-time WebSocket support
+- Sign language feedback upload and management
+- Video processing and storage integration
+- Admin dashboard for feedback review
 
 ### Future Enhancements
 
