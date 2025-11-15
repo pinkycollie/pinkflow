@@ -19,11 +19,13 @@ async function setRepoSecret(
   owner: string,
   repo: string,
   secretName: string,
-  secretValue: string
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _secretValue: string
 ) {
   // Get repository public key for encrypting secrets
   try {
-    const { data: publicKey } = await octokit.rest.actions.getRepoPublicKey({
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { data: _publicKey } = await octokit.rest.actions.getRepoPublicKey({
       owner,
       repo,
     });
@@ -146,7 +148,7 @@ async function createVercelProject(
 export async function POST(req: NextRequest) {
   try {
     const body: ProvisionRequest = await req.json();
-    const { customerEmail, plan, templateRepo, priceId } = body;
+    const { customerEmail, plan, templateRepo } = body;
 
     if (!customerEmail || !plan || !templateRepo) {
       return NextResponse.json(
