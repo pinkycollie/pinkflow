@@ -1,0 +1,13 @@
+name: Release
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-prod:
+    uses: ./.github/workflows/deploy.yml
+    secrets: inherit
