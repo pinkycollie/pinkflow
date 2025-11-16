@@ -23,7 +23,7 @@ jobs:
       matrix:
         # Add languages as they're introduced to the project
         # Supported: 'cpp', 'csharp', 'go', 'java', 'javascript', 'python', 'ruby', 'swift'
-        language: [ 'javascript' ]
+        language: [ 'python' ]
 
     steps:
     - name: Checkout repository
