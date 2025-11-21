@@ -37,7 +37,7 @@ jobs:
         # queries: security-extended,security-and-quality
 
     # Autobuild attempts to build compiled languages
-    # For interpreted languages like Python and JavaScript, this step is not needed
+    # For interpreted languages like Python, this step is not needed
     - name: Autobuild
       uses: github/codeql-action/autobuild@v4
 
