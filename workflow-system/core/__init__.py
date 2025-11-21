@@ -20,6 +20,15 @@ from .workflow_manager import (
     WorkflowManager,
     WorkflowRegistry
 )
+from .feedback_workflow import (
+    FeedbackWorkflowOrchestrator,
+    FeedbackMetadata,
+    FeedbackStatus,
+    VideoValidator,
+    VideoFormat,
+    CloudStorageAdapter,
+    PubSubNotifier
+)
 
 __all__ = [
     'Workflow',
@@ -33,6 +42,13 @@ __all__ = [
     'NodeMetadata',
     'WorkflowManager',
     'WorkflowRegistry',
+    'FeedbackWorkflowOrchestrator',
+    'FeedbackMetadata',
+    'FeedbackStatus',
+    'VideoValidator',
+    'VideoFormat',
+    'CloudStorageAdapter',
+    'PubSubNotifier',
 ]
 
 __version__ = '1.0.0'
