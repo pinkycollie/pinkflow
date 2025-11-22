@@ -1,0 +1,43 @@
+{
+  "name": "pinksync",
+  "version": "1.0.0",
+  "description": "PinkSync - Real-time synchronization and WebSocket service for PinkFlow ecosystem",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
+    "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage"
+  },
+  "keywords": [
+    "fastify",
+    "websocket",
+    "real-time",
+    "pinksync",
+    "pinkflow",
+    "deaf-first"
+  ],
+  "author": "MBTQ.dev",
+  "license": "MIT",
+  "dependencies": {
+    "@fastify/cors": "^11.1.0",
+    "@fastify/swagger": "^9.6.1",
+    "@fastify/swagger-ui": "^5.2.3",
+    "@fastify/websocket": "^11.2.0",
+    "dotenv": "^17.2.3",
+    "fastify": "^5.3.2",
+    "fastify-plugin": "^5.1.0",
+    "pino": "^10.1.0",
+    "pino-pretty": "^13.1.2"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.10.1",
+    "jest": "^30.2.0",
+    "nodemon": "^3.1.11",
+    "ts-jest": "^29.4.5",
+    "typescript": "^5.9.3"
+  }
+}
