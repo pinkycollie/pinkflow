@@ -1,13 +1,13 @@
-# Integration Guide: Stripe → GitHub → Vercel
+# Integration Guide: Stripe → GitHub → Hosting
 
 This guide walks through integrating all components of the auto-deploy system.
 
 ## Overview
 
-The auto-deploy system connects three services:
-1. **Stripe** - Handles payments and triggers webhooks
-2. **GitHub** - Creates repositories and manages code
-3. **Vercel** - Hosts and deploys applications
+The auto-deploy system connects core services and optional hosting providers:
+1. **Stripe** - Handles payments and triggers webhooks (required)
+2. **GitHub** - Creates repositories and manages code (required)
+3. **Vercel** - Hosts and deploys applications (optional)
 
 ## Architecture Flow
 
@@ -22,14 +22,14 @@ Verify Signature & Parse Metadata
     ↓
 Provision API (app/api/provision/route.ts)
     ↓
-┌─────────────────────┬───────────────────────┐
-│                     │                       │
-Create GitHub Repo    Set Repo Secrets    Create Vercel Project
-(from template)       (optional)          & Deploy
-│                     │                       │
-└─────────────────────┴───────────────────────┘
+┌─────────────────────┬───────────────────────┬──────────────────────────┐
+│                     │                       │                          │
+Create GitHub Repo    Set Repo Secrets    Optional: Create Hosting     │
+(from template)       (optional)          Project & Deploy             │
+│                     │                       │                          │
+└─────────────────────┴───────────────────────┴──────────────────────────┘
     ↓
-Return App URL to Customer
+Return App URL to Customer (if deployment enabled)
 ```
 
 ## Step-by-Step Integration
@@ -150,7 +150,9 @@ stripe checkout sessions create \
 4. Check "Template repository"
 5. Test by clicking "Use this template" manually
 
-### Phase 3: Vercel Setup
+### Phase 3: Vercel Setup (Optional)
+
+**Note:** This phase is optional. If you want to enable automatic Vercel deployments, follow these steps and set `ENABLE_VERCEL_DEPLOY=true` in your environment variables.
 
 #### 3.1 Create Vercel Organization
 
@@ -200,7 +202,8 @@ GH_TEMPLATE_OWNER=your-org
 GH_TEMPLATE_REPO=nextjs-template
 GH_TARGET_OWNER=your-org
 
-# Vercel
+# Vercel (Optional - only if ENABLE_VERCEL_DEPLOY=true)
+ENABLE_VERCEL_DEPLOY=false
 VERCEL_TOKEN=xxx
 VERCEL_ORG_ID=team_xxx
 VERCEL_PROJECT_ID=prj_xxx
@@ -226,24 +229,29 @@ stripe listen --forward-to localhost:3000/api/stripe/webhook
 Create a test checkout and verify:
 - Webhook is received
 - Repository is created
-- Vercel project is created
-- Deployment succeeds
+- If Vercel is enabled, verify project is created and deployment succeeds
 
 #### 4.3 Deploy to Production
 
-**Option A: Vercel**
+You can deploy this application to any hosting platform. Here are two common options:
+
+**Option A: Deploy to Vercel**
 ```bash
 npm run build
 vercel --prod
 ```
 
-**Option B: Connect GitHub**
+**Option B: Connect GitHub to Vercel**
 1. Go to vercel.com
 2. Click "Import Project"
 3. Select this repository
 4. Configure build settings
 5. Add all environment variables in Settings → Environment Variables
 6. Deploy
+
+**Option C: Other Hosting Platforms**
+
+This is a standard Next.js application and can be deployed to any platform that supports Node.js applications (e.g., AWS, Azure, Google Cloud, Railway, Render, etc.).
 
 #### 4.4 Configure Production Webhook
 
@@ -259,13 +267,15 @@ vercel --prod
 Go to Organization Settings → Secrets and variables → Actions:
 
 1. Add secrets that apply to all repositories:
-   - `VERCEL_TOKEN`
-   - `VERCEL_ORG_ID`
    - `NEXT_PUBLIC_APP_NAME`
    - `FIBONROSE_BASE_URL`
 
-2. Repository-specific secrets (added per provisioned repo):
-   - `VERCEL_PROJECT_ID` (unique per project)
+2. If using Vercel deployment, also add:
+   - `VERCEL_TOKEN`
+   - `VERCEL_ORG_ID`
+
+3. Repository-specific secrets (added per provisioned repo):
+   - `VERCEL_PROJECT_ID` (unique per project, if using Vercel)
 
 #### 5.2 Test Workflows
 
@@ -289,7 +299,7 @@ Create a test repository from template:
    - Monitor repository creation rate
    - Set up alerts for failed workflows
 
-3. **Vercel**
+3. **Hosting Platform** (if enabled)
    - Monitor deployment success rate
    - Set up build alerts
    - Configure budget alerts
@@ -328,12 +338,11 @@ Use correlation IDs to track requests across services.
 - [ ] Repository created from template
 - [ ] Repository is private
 - [ ] Secrets are set (if configured)
-- [ ] Vercel project created
-- [ ] First deployment succeeds
-- [ ] App URL is accessible
+- [ ] If Vercel enabled: project created and first deployment succeeds
+- [ ] If Vercel enabled: app URL is accessible
 - [ ] CI workflow runs on PRs
-- [ ] Preview deployments work
-- [ ] Production deployment works
+- [ ] Preview deployments work (if configured)
+- [ ] Production deployment works (if configured)
 - [ ] Security audit runs
 - [ ] Error handling works (test with invalid data)
 
@@ -384,9 +393,12 @@ Use correlation IDs to track requests across services.
 - Check encryption is implemented correctly
 - Use GitHub API to verify secret was set
 
-### Vercel Issues
+### Vercel Issues (If Enabled)
+
+**Note:** These issues only apply if `ENABLE_VERCEL_DEPLOY=true`
 
 **Project creation fails**
+- Verify `ENABLE_VERCEL_DEPLOY` is set to `true`
 - Verify Vercel token is valid
 - Check organization/team ID is correct
 - Ensure repository is accessible to Vercel
@@ -416,11 +428,11 @@ Use correlation IDs to track requests across services.
 2. **Rotate regularly**
    - Stripe keys: quarterly
    - GitHub App key: annually
-   - Vercel tokens: quarterly
+   - Hosting platform tokens: quarterly (if used)
 
 3. **Use least privilege**
    - Minimal GitHub App permissions
-   - Scoped Vercel tokens
+   - Scoped hosting platform tokens (if used)
    - Restricted Stripe API keys
 
 ### Network Security
@@ -453,7 +465,7 @@ Use correlation IDs to track requests across services.
 
 - [Stripe API Documentation](https://stripe.com/docs/api)
 - [GitHub Apps Documentation](https://docs.github.com/en/apps)
-- [Vercel API Documentation](https://vercel.com/docs/rest-api)
+- [Vercel API Documentation](https://vercel.com/docs/rest-api) (if using Vercel)
 - [PinkFlow Repository](https://github.com/pinkycollie/pinkflow)
 
 ## Next Steps

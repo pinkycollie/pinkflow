@@ -51,11 +51,18 @@ async function createVercelProject(
   gitUrl: string,
   envVars: Record<string, string>
 ) {
+  // Check if Vercel integration is enabled
+  const vercelEnabled = process.env.ENABLE_VERCEL_DEPLOY === 'true';
   const vercelToken = process.env.VERCEL_TOKEN;
   const vercelOrgId = process.env.VERCEL_ORG_ID;
 
+  if (!vercelEnabled) {
+    console.log('Vercel deployment is disabled');
+    return null;
+  }
+
   if (!vercelToken || !vercelOrgId) {
-    console.error('Vercel credentials not configured');
+    console.warn('Vercel credentials not configured');
     return null;
   }
 
@@ -204,13 +211,18 @@ export async function POST(req: NextRequest) {
       process.env.FIBONROSE_BASE_URL || ''
     );
 
-    // 3) Create Vercel project and deploy
-    const vercelResult = await createVercelProject(repoName, newRepo.html_url, {
-      NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME || 'JobMagician',
-      FIBONROSE_BASE_URL: process.env.FIBONROSE_BASE_URL || '',
-      PLAN: plan,
-      CUSTOMER_EMAIL: customerEmail,
-    });
+    // 3) Create Vercel project and deploy (optional)
+    let vercelResult = null;
+    if (process.env.ENABLE_VERCEL_DEPLOY === 'true') {
+      vercelResult = await createVercelProject(repoName, newRepo.html_url, {
+        NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME || 'JobMagician',
+        FIBONROSE_BASE_URL: process.env.FIBONROSE_BASE_URL || '',
+        PLAN: plan,
+        CUSTOMER_EMAIL: customerEmail,
+      });
+    } else {
+      console.log('Skipping Vercel deployment (disabled)');
+    }
 
     // 4) Return results
     return NextResponse.json({

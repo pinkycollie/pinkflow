@@ -41,8 +41,8 @@
 │  │  1. Authenticate with GitHub App                             │    │
 │  │  2. Create repository from template                          │    │
 │  │  3. Set repository secrets                                   │    │
-│  │  4. Create Vercel project                                    │    │
-│  │  5. Trigger deployment                                       │    │
+│  │  4. Optional: Create hosting project (if enabled)            │    │
+│  │  5. Optional: Trigger deployment (if enabled)                │    │
 │  │  6. Return app URL                                           │    │
 │  └────────────────────────────────────────────────────────────┘    │
 └─────────────────────────────────────────────────────────────────────┘
@@ -75,7 +75,7 @@
 │                        External Services                              │
 ├──────────────────────────────────────────────────────────────────────┤
 │                                                                       │
-│  Stripe                    GitHub                    Vercel           │
+│  Stripe                    GitHub              Hosting (Optional)    │
 │  ┌─────────┐              ┌─────────┐              ┌─────────┐      │
 │  │Webhooks │──────────────▶│ App     │◀─────────────│  API    │      │
 │  │Products │              │ API     │              │Projects │      │
@@ -94,7 +94,7 @@
 │  ├──────────────────┤    ├──────────────────┤   ├─────────────────┤│
 │  │ - Verify sig     │───▶│ - GitHub create  │   │ - Env vars      ││
 │  │ - Parse event    │    │ - Set secrets    │◀──│ - Credentials   ││
-│  │ - Trigger flow   │    │ - Vercel deploy  │   │ - Templates     ││
+│  │ - Trigger flow   │    │ - Deploy (opt)   │   │ - Templates     ││
 │  └──────────────────┘    └──────────────────┘   └─────────────────┘│
 │                                                                       │
 └──────────────────────────────────────────────────────────────────────┘
@@ -104,12 +104,13 @@
 │                        Provisioned Resources                          │
 ├──────────────────────────────────────────────────────────────────────┤
 │                                                                       │
-│  New Repository                 Vercel Project           Customer     │
-│  ┌─────────────┐               ┌──────────────┐        ┌──────────┐ │
-│  │ - Code      │──────────────▶│ - Build      │───────▶│ App URL  │ │
-│  │ - Workflows │               │ - Deploy     │        │ Access   │ │
-│  │ - Secrets   │               │ - Monitor    │        └──────────┘ │
-│  └─────────────┘               └──────────────┘                      │
+│  New Repository            Hosting Project         Customer     │
+│                            (Optional)                           │
+│  ┌─────────────┐          ┌──────────────┐        ┌──────────┐ │
+│  │ - Code      │─────────▶│ - Build      │───────▶│ App URL  │ │
+│  │ - Workflows │          │ - Deploy     │        │ Access   │ │
+│  │ - Secrets   │          │ - Monitor    │        └──────────┘ │
+│  └─────────────┘          └──────────────┘                      │
 │        │                                │                            │
 │        ▼                                ▼                            │
 │  ┌─────────────┐               ┌──────────────┐                     │
@@ -144,7 +145,7 @@ Customer Purchase
     │   │   ├─> Visibility: Private
     │   │   └─> Secrets: NEXT_PUBLIC_APP_NAME, etc.
     │   │
-    │   ├─> Vercel: Create project
+    │   ├─> Optional: Create hosting project (if enabled)
     │   │   ├─> Link to GitHub repo
     │   │   ├─> Set environment variables
     │   │   └─> Trigger first deployment
@@ -153,7 +154,7 @@ Customer Purchase
     │
     └─> Customer receives
         ├─> Repository access (GitHub)
-        ├─> Live application URL (Vercel)
+        ├─> Live application URL (if deployment enabled)
         └─> Configured CI/CD (GitHub Actions)
 ```
 
@@ -172,13 +173,13 @@ Customer Purchase
 │  2. Authentication                                               │
 │     ┌──────────────────────────────────────────────┐           │
 │     │ GitHub App → JWT Token → Installation Token  │           │
-│     │ Vercel API → Bearer Token → Scoped Access    │           │
+│     │ Hosting API → Bearer Token → Scoped Access   │           │
 │     └──────────────────────────────────────────────┘           │
 │                                                                  │
 │  3. Secrets Management                                           │
 │     ┌──────────────────────────────────────────────┐           │
 │     │ Environment Variables → Encrypted at Rest     │           │
-│     │ No Secrets in Code → All in Vercel/GitHub   │           │
+│     │ No Secrets in Code → All in Env Vars/GitHub │           │
 │     │ Rotation Policy → Monthly/Quarterly          │           │
 │     └──────────────────────────────────────────────┘           │
 │                                                                  │

@@ -48,7 +48,7 @@ PinkFlow is a process-orchestration layer for partners and collaborators who don
 - **Auto-Deploy System**: Complete system for provisioning React apps via Stripe purchases ✅ **NEW**
   - Stripe webhook integration with signature verification
   - Automated GitHub repository creation from templates
-  - Vercel project setup and deployment
+  - Optional hosting deployment (Vercel or other platforms)
   - Complete CI/CD pipelines
   - [Learn more →](#auto-deploy-system)
 - **Role-Based UI**: Adapts interface based on user role (Developer, Researcher, Contributor)
@@ -209,7 +209,7 @@ REACT_APP_WS_URL=ws://localhost:3001
 **Infrastructure**:
 - Google Cloud Platform
 - Cloud Run for services
-- Vercel for frontend and auto-deployed apps
+- Flexible deployment options (Vercel, Cloud Run, or other platforms)
 - GitHub for version control and CI/CD
 
 ---
@@ -223,20 +223,20 @@ PinkFlow includes a complete auto-deploy system that automatically provisions an
 ### How It Works
 
 ```
-Customer Purchase → Stripe Webhook → GitHub Repo Creation → Vercel Deployment → Live App
+Customer Purchase → Stripe Webhook → GitHub Repo Creation → Optional Deployment → Live App
 ```
 
 1. **Customer purchases** a plan through Stripe Checkout
 2. **Stripe sends webhook** to PinkFlow with plan details
 3. **GitHub repository created** from template, private and configured
-4. **Vercel project created** and deployed automatically
-5. **Customer receives** repository access and live app URL
+4. **Optional deployment** to hosting platform (Vercel or other) if enabled
+5. **Customer receives** repository access and optionally live app URL
 
 ### Key Features
 
 - ✅ **Stripe Integration**: Webhook handling with signature verification
 - ✅ **GitHub Provisioning**: Automated repository creation from templates
-- ✅ **Vercel Deployment**: Automatic project setup and deployment
+- ✅ **Optional Deployment**: Automatic project setup and deployment (Vercel or other platforms)
 - ✅ **CI/CD Pipelines**: Complete GitHub Actions workflows
 - ✅ **Security First**: All workflows have minimal permissions, 0 vulnerabilities
 - ✅ **Comprehensive Documentation**: 2,100+ lines of setup guides and references
@@ -255,7 +255,8 @@ Customer Purchase → Stripe Webhook → GitHub Repo Creation → Vercel Deploym
 1. **Configure Environment Variables**
    ```bash
    cp .env.example .env.local
-   # Fill in Stripe, GitHub, and Vercel credentials
+   # Fill in Stripe and GitHub credentials
+   # Optionally add Vercel credentials if enabling deployment
    ```
 
 2. **Install Dependencies**
@@ -272,7 +273,8 @@ Customer Purchase → Stripe Webhook → GitHub Repo Creation → Vercel Deploym
 4. **Deploy to Production**
    ```bash
    npm run build
-   vercel --prod
+   # Deploy to your preferred platform (e.g., Vercel, Cloud Run, etc.)
+   vercel --prod  # If using Vercel
    ```
 
 ### Template Repository
@@ -281,7 +283,7 @@ The `template-nextjs-app/` directory contains a complete Next.js application tem
 
 - Next.js 14 with TypeScript
 - GitHub Actions workflows
-- Vercel deployment configuration
+- Deployment configuration for various platforms
 - Security best practices
 - Accessibility features
 
@@ -495,7 +497,7 @@ Next step: Replace mocked data with live API calls.
 
 ## 📌 Deployment Notes
 
-* **Frontend**: Deployable on Vercel or Cloud Run (current: Vercel staging, may migrate fully to GCP).
+* **Frontend**: Deployable on various platforms including Vercel, Cloud Run, or other Node.js hosts.
 * **Backend**: FastAPI services structured for Cloud Run + Cloud SQL.
 * **Real-time (PinkSync)**: Node.js service deployable on Cloud Run with WebSocket support.
 * **Environment variables**: Required for Gemini API, Auth secrets, DB URLs.

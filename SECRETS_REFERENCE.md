@@ -21,10 +21,11 @@ This document provides a comprehensive reference for all secrets and environment
 | GitHub | `GH_TEMPLATE_OWNER` | Template repo owner | `your-org` | Vercel env |
 | GitHub | `GH_TEMPLATE_REPO` | Template repo name | `nextjs-template` | Vercel env |
 | GitHub | `GH_TARGET_OWNER` | Target org for new repos | `your-org` | Vercel env |
-| **Vercel** |
-| Vercel | `VERCEL_TOKEN` | Vercel API token | `vercel_token_xxx` | GitHub secret |
-| Vercel | `VERCEL_ORG_ID` | Vercel organization ID | `org_xxx` or `team_xxx` | Vercel env + GitHub secret |
-| Vercel | `VERCEL_PROJECT_ID` | Vercel project ID | `prj_xxx` | Vercel env + GitHub secret |
+| **Vercel (Optional)** |
+| Deployment | `ENABLE_VERCEL_DEPLOY` | Enable Vercel deployment | `true` or `false` | Vercel env + GitHub secret |
+| Vercel | `VERCEL_TOKEN` | Vercel API token | `vercel_token_xxx` | GitHub secret (if enabled) |
+| Vercel | `VERCEL_ORG_ID` | Vercel organization ID | `org_xxx` or `team_xxx` | Vercel env + GitHub secret (if enabled) |
+| Vercel | `VERCEL_PROJECT_ID` | Vercel project ID | `prj_xxx` | Vercel env + GitHub secret (if enabled) |
 | **Application** |
 | App | `NEXT_PUBLIC_APP_NAME` | Application display name | `JobMagician` | Vercel env + GitHub secret |
 | App | `NEXT_PUBLIC_BASE_URL` | Base URL of the app | `https://yourdomain.com` | Vercel env |
@@ -194,10 +195,23 @@ Organization where new repositories will be created.
 
 **Example:** `my-org` (can be same as template owner)
 
-### Vercel Configuration
+### Vercel Configuration (Optional)
+
+**Note:** Vercel deployment is optional. Set `ENABLE_VERCEL_DEPLOY=true` to enable automatic Vercel deployments.
+
+#### ENABLE_VERCEL_DEPLOY
+**Required:** No (defaults to `false`)  
+**Type:** Configuration  
+**Format:** `true` or `false`
+
+Controls whether automatic Vercel deployment is enabled during provisioning.
+
+**Example:** `true`
+
+**Note:** When set to `false`, only the GitHub repository will be created. You can deploy using other hosting platforms or manually.
 
 #### VERCEL_TOKEN
-**Required:** Yes  
+**Required:** Only if `ENABLE_VERCEL_DEPLOY=true`  
 **Type:** Secret  
 **Format:** Long alphanumeric string
 
@@ -212,7 +226,7 @@ Vercel API authentication token.
 **Security:** Store in GitHub secrets for Actions workflows. Different token for different environments recommended.
 
 #### VERCEL_ORG_ID
-**Required:** Yes  
+**Required:** Only if `ENABLE_VERCEL_DEPLOY=true`  
 **Type:** Configuration  
 **Format:** `org_xxx` or `team_xxx`
 
@@ -230,7 +244,7 @@ curl -H "Authorization: Bearer VERCEL_TOKEN" \
 ```
 
 #### VERCEL_PROJECT_ID
-**Required:** Yes (for existing projects)  
+**Required:** Only if `ENABLE_VERCEL_DEPLOY=true` (for existing projects)  
 **Type:** Configuration  
 **Format:** `prj_xxx`
 
@@ -301,7 +315,7 @@ Base URL for FibonRose trust verification service.
 3. **Principle of least privilege**
    - Minimal scopes for tokens
    - Limited permissions for GitHub App
-   - Restricted Vercel team roles
+   - Restricted team roles for hosting platforms
 
 4. **Encryption at rest**
    - Use Vercel encrypted environment variables for sensitive data
@@ -344,8 +358,9 @@ Base URL for FibonRose trust verification service.
 - Ensure GitHub App is installed on organization
 - Verify GitHub App has required permissions
 
-#### Vercel deployment fails
-- Check `VERCEL_TOKEN` is valid and not expired
+#### Vercel deployment fails (if enabled)
+- Check `ENABLE_VERCEL_DEPLOY` is set to `true`
+- Verify `VERCEL_TOKEN` is valid and not expired
 - Verify `VERCEL_ORG_ID` is correct
 - Ensure token has appropriate scope
 - Check Vercel usage limits
@@ -363,8 +378,8 @@ Base URL for FibonRose trust verification service.
 1. Update all Stripe keys to live mode
 2. Create production webhook endpoint
 3. Generate new GitHub App for production (or use same with caution)
-4. Create separate Vercel project for production
-5. Use separate environment in Vercel (production vs. preview)
+4. If using Vercel: Create separate project for production
+5. If using Vercel: Use separate environment (production vs. preview)
 6. Update all environment variables in production environment
 7. Test end-to-end before going live
 
@@ -382,7 +397,7 @@ Base URL for FibonRose trust verification service.
 3. Test provisioning workflow
 4. Delete old key file after verification
 
-#### Vercel Token
+#### Vercel Token (if used)
 1. Generate new token in Vercel settings
 2. Update in GitHub secrets immediately
 3. Test deployment workflow
