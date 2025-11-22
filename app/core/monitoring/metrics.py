@@ -3,7 +3,7 @@ Accessibility-focused monitoring and metrics tracking.
 Tracks performance and quality metrics for accessibility features.
 """
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from collections import defaultdict
 from threading import Lock
 
@@ -165,8 +165,6 @@ class AccessibilityMetrics:
         Args:
             days: Number of days to keep
         """
-        from datetime import timedelta
-        
         cutoff_date = datetime.utcnow() - timedelta(days=days)
         
         with self._lock:

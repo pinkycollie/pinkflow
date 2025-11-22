@@ -83,12 +83,18 @@ class SmartCache:
         
         Args:
             user_id: ID of the user whose cache should be invalidated
+        
+        Raises:
+            NotImplementedError: This method requires cache backend with tagging support
         """
-        # Note: This is a simplified version. In production, you might want
-        # to use cache tags or a more sophisticated invalidation strategy.
-        # For now, we just clear the entire cache when user preferences change.
-        # A better approach would be to track cache keys by user.
-        pass  # Implementation depends on cache backend capabilities
+        # This requires a cache backend that supports tagging or key patterns
+        # Redis supports this via key patterns, but the basic Flask-Caching
+        # interface doesn't expose it directly.
+        raise NotImplementedError(
+            "User-specific cache invalidation requires cache backend "
+            "with tagging or pattern matching support. "
+            "Consider implementing with Redis SCAN or cache tags."
+        )
     
     def get_cache_stats(self):
         """
@@ -96,14 +102,16 @@ class SmartCache:
         
         Returns:
             Dictionary with cache statistics
+            
+        Raises:
+            NotImplementedError: Requires cache backend with statistics support
         """
-        # Implementation depends on cache backend
-        # This is a placeholder for monitoring purposes
-        return {
-            'hits': 0,
-            'misses': 0,
-            'size': 0
-        }
+        # Cache statistics depend on the backend being used
+        # Flask-Caching doesn't provide a standard interface for this
+        raise NotImplementedError(
+            "Cache statistics require backend-specific implementation. "
+            "For Redis, consider using INFO stats command."
+        )
 
 
 # Create a global smart cache instance

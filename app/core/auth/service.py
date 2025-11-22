@@ -5,7 +5,7 @@ Implements access and refresh token pattern with revocation support.
 import secrets
 from datetime import datetime, timedelta
 import jwt
-from flask import current_app, g
+from flask import current_app, g, request, jsonify
 from functools import wraps
 from app.models import User, TokenBlacklist
 from app.extensions import db
@@ -243,8 +243,6 @@ def token_required(f):
     """
     @wraps(f)
     def decorated(*args, **kwargs):
-        from flask import request, jsonify
-        
         token = None
         auth_header = request.headers.get('Authorization')
         

@@ -3,6 +3,7 @@ Async video service for processing sign language videos.
 Uses Celery for background task processing.
 """
 import os
+import uuid
 from celery import Celery
 from flask import current_app
 from app.models import User
@@ -238,7 +239,6 @@ class VideoService:
         os.makedirs(upload_folder, exist_ok=True)
         
         # Generate secure filename
-        import uuid
         filename = f"{user_id}_{uuid.uuid4().hex}_{file.filename}"
         filepath = os.path.join(upload_folder, filename)
         

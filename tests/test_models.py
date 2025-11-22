@@ -53,7 +53,7 @@ def test_user_accessibility_preferences(app):
         assert prefs['preferred_sign_language'] == 'BSL'
         assert prefs['visual_density'] == 4
         assert prefs['reading_level'] == 2
-        assert prefs['motion_sensitivity'] == True
+        assert prefs['motion_sensitivity'] is True
         assert prefs['color_contrast'] == 'high'
 
 
