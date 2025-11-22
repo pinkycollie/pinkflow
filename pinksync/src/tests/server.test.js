@@ -1,6 +1,9 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { buildApp } from '../server.js';
 
+// Test constants
+const TEST_FILE_PATH = '/src/index.js';
+
 describe('PinkSync Server', () => {
   let app;
 
@@ -110,19 +113,19 @@ describe('PinkSync Server', () => {
     it('should get file content', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/api/workspace/file?path=/src/index.js',
+        url: `/api/workspace/file?path=${TEST_FILE_PATH}`,
       });
 
       expect(response.statusCode).toBe(200);
       const json = JSON.parse(response.body);
       expect(json.success).toBe(true);
-      expect(json.data.path).toBe('/src/index.js');
+      expect(json.data.path).toBe(TEST_FILE_PATH);
     });
 
     it('should update file content', async () => {
       const response = await app.inject({
         method: 'PUT',
-        url: '/api/workspace/file?path=/src/index.js',
+        url: `/api/workspace/file?path=${TEST_FILE_PATH}`,
         payload: {
           content: 'console.log("Hello World");',
         },
@@ -154,7 +157,7 @@ describe('PinkSync Server', () => {
         url: '/api/workspace/commit',
         payload: {
           message: 'Test commit',
-          files: ['/src/index.js'],
+          files: [TEST_FILE_PATH],
         },
       });
 

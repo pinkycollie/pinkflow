@@ -3,6 +3,7 @@ import cors from '@fastify/cors';
 import swagger from '@fastify/swagger';
 import swaggerUI from '@fastify/swagger-ui';
 import websocket from '@fastify/websocket';
+import { pathToFileURL } from 'url';
 import config from './config/index.js';
 import websocketPlugin from './plugins/websocket.js';
 import authRoutes from './routes/auth.js';
@@ -134,7 +135,7 @@ async function start() {
 }
 
 // Start server if this file is run directly
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   start();
 }
 
