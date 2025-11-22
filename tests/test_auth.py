@@ -127,7 +127,8 @@ def test_logout(accessibility_client):
     """Test logout functionality."""
     response = accessibility_client.post(
         '/api/auth/logout',
-        headers={'Authorization': f'Bearer {accessibility_client.token}'}
+        headers={'Authorization': f'Bearer {accessibility_client.token}'},
+        json={}  # Send empty JSON body
     )
     
     assert response.status_code == 200

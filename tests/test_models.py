@@ -61,6 +61,7 @@ def test_user_authorized_modules(app):
     """Test user authorized modules property."""
     with app.app_context():
         user = User(email='test@example.com', username='test')
+        user.set_password('password')
         
         # Set authorized modules
         user.authorized_modules = ['auth', 'video', 'document']
@@ -89,9 +90,11 @@ def test_get_by_module_access(app):
     """Test querying users by module access."""
     with app.app_context():
         user1 = User(email='user1@example.com', username='user1')
+        user1.set_password('password')
         user1.authorized_modules = ['video', 'auth']
         
         user2 = User(email='user2@example.com', username='user2')
+        user2.set_password('password')
         user2.authorized_modules = ['auth']
         
         db.session.add_all([user1, user2])
