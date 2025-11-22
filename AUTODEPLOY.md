@@ -8,7 +8,7 @@ The system automatically:
 1. Receives Stripe webhook events when a buyer purchases a plan
 2. Creates a private GitHub repository from a template
 3. Configures repository secrets
-4. Creates and deploys a Vercel project
+4. Optionally creates and deploys a Vercel project (when enabled)
 5. Returns the app URL to the buyer
 
 ## Architecture
@@ -23,8 +23,8 @@ The system automatically:
 2. **Provisioning API** (`app/api/provision/route.ts`)
    - Creates GitHub repository from template
    - Sets repository secrets
-   - Creates Vercel project
-   - Deploys application
+   - Optionally creates Vercel project (when enabled)
+   - Optionally deploys application (when enabled)
 
 3. **GitHub Actions Workflows**
    - `ci.yml` - Pull request checks (lint, typecheck, test, build)
@@ -64,7 +64,9 @@ Set up webhook endpoint in Stripe:
 
 4. Note the App ID and Installation ID
 
-### 3. Configure Vercel
+### 3. Configure Vercel (Optional)
+
+**Note:** Vercel deployment is optional. To enable it, set `ENABLE_VERCEL_DEPLOY=true` in your environment variables.
 
 1. Create a Vercel project or use API
 2. Get organization ID and project ID from settings
@@ -87,16 +89,21 @@ Copy `.env.example` to `.env.local` and fill in all values:
 - `GH_TEMPLATE_REPO` - Template repository name
 - `GH_TARGET_OWNER` - Target organization for new repos
 
-#### Vercel
-- `VERCEL_TOKEN` - Vercel authentication token
-- `VERCEL_ORG_ID` - Organization ID
-- `VERCEL_PROJECT_ID` - Project ID
+#### Vercel (Optional)
+- `ENABLE_VERCEL_DEPLOY` - Set to `true` to enable Vercel deployment (default: `false`)
+- `VERCEL_TOKEN` - Vercel authentication token (required if enabled)
+- `VERCEL_ORG_ID` - Organization ID (required if enabled)
+- `VERCEL_PROJECT_ID` - Project ID (required if enabled)
 
 #### Application
 - `NEXT_PUBLIC_APP_NAME` - Application name
 - `FIBONROSE_BASE_URL` - FibonRose trust service URL
 
-### 5. Deploy to Vercel
+### 5. Deploy the Application
+
+You can deploy this application using Vercel or any other hosting platform.
+
+#### Option A: Deploy to Vercel
 
 ```bash
 npm install
@@ -106,14 +113,20 @@ vercel --prod
 
 Or connect GitHub repository to Vercel for automatic deployments.
 
+#### Option B: Deploy to other platforms
+
+This is a standard Next.js application and can be deployed to any platform that supports Node.js applications.
+
 ### 6. Configure GitHub Secrets
 
 For GitHub Actions workflows, add these secrets:
+- `NEXT_PUBLIC_APP_NAME`
+- `FIBONROSE_BASE_URL`
+
+If Vercel deployment is enabled, also add:
 - `VERCEL_TOKEN`
 - `VERCEL_ORG_ID`
 - `VERCEL_PROJECT_ID`
-- `NEXT_PUBLIC_APP_NAME`
-- `FIBONROSE_BASE_URL`
 
 ## Testing
 
@@ -147,7 +160,7 @@ stripe checkout sessions create \
 1. Create a test purchase in Stripe Dashboard
 2. Verify webhook is received and processed
 3. Check GitHub for new repository
-4. Verify Vercel deployment
+4. If Vercel is enabled, verify Vercel deployment
 5. Test the deployed application
 
 ## Security
@@ -204,7 +217,8 @@ All provisioning events are logged with:
    - Check installation token is valid
    - Ensure template repository exists
 
-3. **Vercel deployment fails**
+3. **Vercel deployment fails** (if enabled)
+   - Verify `ENABLE_VERCEL_DEPLOY` is set to `true`
    - Verify Vercel token is valid
    - Check organization and project IDs
    - Ensure repository is accessible
@@ -231,7 +245,7 @@ All provisioning events are logged with:
 3. **Quarterly**
    - Review and update documentation
    - Audit GitHub App permissions
-   - Review Vercel usage and costs
+   - Review hosting platform usage and costs
 
 ## Support
 

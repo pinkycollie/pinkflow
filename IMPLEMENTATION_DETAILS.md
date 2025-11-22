@@ -102,7 +102,7 @@ This implementation provides a complete, production-ready auto-deploy system for
 
 4. **INTEGRATION_GUIDE.md** - Step-by-Step Integration
    - Phase-by-phase setup guide
-   - Stripe, GitHub, and Vercel configuration
+   - Stripe, GitHub, and optional hosting configuration
    - Testing procedures
    - Troubleshooting common issues
 
@@ -149,11 +149,12 @@ This implementation provides a complete, production-ready auto-deploy system for
 - Secret management (placeholder for encryption)
 - Private repositories by default
 
-**Vercel Integration**:
-- API-based project creation
+**Optional Hosting Integration**:
+- API-based project creation (when enabled)
 - Environment variable configuration
 - Automatic deployment triggering
 - Production and preview environments
+- Can be disabled by setting `ENABLE_VERCEL_DEPLOY=false`
 
 ## Security Features
 
@@ -209,7 +210,7 @@ The following should be tested in a real environment:
    - Check template application
    - Test secret configuration
 
-3. **Vercel Deployment**
+3. **Hosting Deployment** (if enabled)
    - Verify project creation
    - Check environment variables
    - Test first deployment
@@ -233,10 +234,11 @@ The following should be tested in a real environment:
    - Template repository marked as template
    - App credentials obtained
 
-3. **Vercel Account**
-   - Organization/team created
+3. **Hosting Platform** (Optional - if enabling automatic deployment)
+   - Platform account created (e.g., Vercel, Cloud Run, etc.)
    - API token generated
-   - Organization ID noted
+   - Organization/team ID noted
+   - Set `ENABLE_VERCEL_DEPLOY=true` if using Vercel
 
 ### Setup Steps
 
@@ -257,11 +259,12 @@ The following should be tested in a real environment:
    # Use Stripe CLI to forward webhooks
    ```
 
-4. **Deploy to Vercel**
+4. **Deploy to Production**
    ```bash
    npm run build
-   vercel --prod
-   # Or connect GitHub repo to Vercel
+   # Deploy to your preferred platform
+   vercel --prod  # If using Vercel
+   # Or deploy to other platforms (Cloud Run, etc.)
    ```
 
 5. **Configure GitHub Secrets**
@@ -377,7 +380,7 @@ The following should be tested in a real environment:
 ### External Resources
 - [Stripe API Documentation](https://stripe.com/docs/api)
 - [GitHub Apps Documentation](https://docs.github.com/en/apps)
-- [Vercel API Documentation](https://vercel.com/docs/rest-api)
+- [Vercel API Documentation](https://vercel.com/docs/rest-api) (if using Vercel)
 - [Next.js Documentation](https://nextjs.org/docs)
 
 ### Contact
