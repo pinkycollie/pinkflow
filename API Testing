@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
 title: PinkFlow API
 description: |
-Sign Language Model Testing & Validation API for MBTQ Universe
+Sign Language Model Testing & Validation API
 
 ```
 **Architecture:**
@@ -14,8 +14,8 @@ Sign Language Model Testing & Validation API for MBTQ Universe
 
 version: 1.0.0
 contact:
-name: MBTQ Universe
-url: https://mbtquniverse.com
+name: MBTQ.dev
+url: https://mbtq.dev
 
 servers:
 
@@ -614,7 +614,7 @@ type: http
 scheme: bearer
 bearerFormat: JWT
 description: |
-DeafAUTH token for MBTQ Universe authentication
+DeafAUTH token for authentication
 
 ```
     **How to obtain:**
