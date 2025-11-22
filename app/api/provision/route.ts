@@ -212,17 +212,12 @@ export async function POST(req: NextRequest) {
     );
 
     // 3) Create Vercel project and deploy (optional)
-    let vercelResult = null;
-    if (process.env.ENABLE_VERCEL_DEPLOY === 'true') {
-      vercelResult = await createVercelProject(repoName, newRepo.html_url, {
-        NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME || 'JobMagician',
-        FIBONROSE_BASE_URL: process.env.FIBONROSE_BASE_URL || '',
-        PLAN: plan,
-        CUSTOMER_EMAIL: customerEmail,
-      });
-    } else {
-      console.log('Skipping Vercel deployment (disabled)');
-    }
+    const vercelResult = await createVercelProject(repoName, newRepo.html_url, {
+      NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME || 'JobMagician',
+      FIBONROSE_BASE_URL: process.env.FIBONROSE_BASE_URL || '',
+      PLAN: plan,
+      CUSTOMER_EMAIL: customerEmail,
+    });
 
     // 4) Return results
     return NextResponse.json({
