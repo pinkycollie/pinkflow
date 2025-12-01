@@ -18,6 +18,7 @@ PinkFlow (part of MBTQ.dev) is a **Deaf-First ecosystem** built to empower entre
 - [Use Cases](#-use-cases)
 - [Architecture](#-architecture)
 - [Development](#-development)
+- [Releases & Milestones](#-releases--milestones)
 - [Contributing](#-contributing)
 - [Security](#-security)
 - [Community](#-community)
@@ -234,6 +235,11 @@ PinkFlow/
 ├── CONTRIBUTING.md      # Contribution guidelines
 ├── CODE_OF_CONDUCT.md   # Community standards
 ├── SECURITY.md          # Security policy
+├── CHANGELOG.md         # Version history
+├── MILESTONES.md        # Project roadmap and milestones
+├── ANNOUNCEMENTS.md     # Official announcements
+├── RELEASE.md           # Release process guide
+├── VERSION              # Current version number
 └── .gitignore           # Git ignore rules
 ```
 
@@ -289,6 +295,43 @@ pytest
 # E2E tests (when implemented)
 npm run test:e2e
 ```
+
+---
+
+## 📦 Releases & Milestones
+
+### Current Version
+
+**Version**: 0.1.0 (Foundation Release)  
+**Status**: Experimental  
+**Release Date**: December 2025
+
+See the [VERSION](VERSION) file for the current version number.
+
+### Key Resources
+
+- **[MILESTONES.md](MILESTONES.md)**: Project roadmap and milestone tracking
+- **[ANNOUNCEMENTS.md](ANNOUNCEMENTS.md)**: Official project announcements
+- **[RELEASE.md](RELEASE.md)**: Release process and versioning guide
+- **[CHANGELOG.md](CHANGELOG.md)**: Detailed version history
+
+### Roadmap Overview
+
+| Milestone | Version | Target | Status |
+|-----------|---------|--------|--------|
+| Foundation | v0.1.0 | Q4 2025 | ✅ Complete |
+| Backend Integration | v0.2.0 | Q1 2026 | 🔄 In Progress |
+| Real-time Features | v0.3.0 | Q2 2026 | 📋 Planned |
+| AI Integration | v0.4.0 | Q3 2026 | 📋 Planned |
+| Production Release | v1.0.0 | Q4 2026 | 📋 Planned |
+
+### Readiness Status
+
+✅ **Internal Ready**: Development infrastructure established  
+✅ **External Ready**: Community contribution pathways open  
+⏳ **Production Ready**: Planned for v1.0.0
+
+See [RELEASE.md](RELEASE.md) for detailed readiness criteria.
 
 ---
 
