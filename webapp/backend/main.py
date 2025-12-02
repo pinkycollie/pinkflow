@@ -373,7 +373,7 @@ async def test_model(request: ModelTestRequest, background_tasks: BackgroundTask
         precision=test_result.get('precision'),
         recall=test_result.get('recall'),
         f1_score=test_result.get('f1_score'),
-        processing_time=test_result.get('processing_fps'),
+        processing_time=test_result.get('processing_time'),
         errors=[],
         metadata={
             'model_type': result.get('model_type'),
@@ -409,7 +409,7 @@ async def test_batch(request: BatchTestRequest):
             precision=test_result.get('precision'),
             recall=test_result.get('recall'),
             f1_score=test_result.get('f1_score'),
-            processing_time=test_result.get('processing_fps'),
+            processing_time=test_result.get('processing_time'),
             errors=[],
             metadata={'model_type': result.get('model_type')},
             created_at=datetime.now(),

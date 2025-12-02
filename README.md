@@ -51,6 +51,20 @@ PinkFlow is a process-orchestration layer for partners and collaborators who don
 - **Workspace Management**: File tree navigation and editing capabilities
 - **Governance System**: Proposal voting and contribution tracking
 
+### 🌸 Web Application (`webapp/`)
+
+A complete Deaf-First accessibility toolkit with:
+
+- **Model Testing**: Test sign language AI models from GitHub repos against real accessibility standards
+- **Smart Captions**: Generate high-quality captions for video content
+- **Audio Transcription**: Convert audio to text with speaker detection
+- **Visual Alerts**: Convert audio alerts to visual notifications (Beta)
+- **Sign Recognition**: Real-time ASL to text translation (Beta)
+- **FastAPI Backend**: REST API for all accessibility tools
+- **React Frontend**: Mobile-responsive, Deaf-First design with Tailwind CSS
+
+See [webapp/README.md](webapp/README.md) for setup instructions.
+
 ### Planned Features
 
 - **Sign Language Feedback System**: Upload and manage sign language video feedback
