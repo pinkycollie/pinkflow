@@ -84,6 +84,17 @@ See [webapp/README.md](webapp/README.md) for setup instructions.
 
 ## 🚀 Getting Started
 
+### 🆕 New to PinkFlow?
+
+**Start here!** Our comprehensive onboarding guide will walk you through everything:
+
+📘 **[Onboarding Guide](ONBOARDING.md)** - Complete step-by-step guide for new contributors
+
+Quick links:
+- 🌿 [Branch Naming Conventions](BRANCH_NAMING.md)
+- 🏷️ [Labels Guide](LABELS.md)
+- 🤝 [Contributing Guidelines](CONTRIBUTING.md)
+
 ### Prerequisites
 
 Depending on which component you're working with:
@@ -355,6 +366,8 @@ We welcome contributions from everyone! Here's how you can help:
 
 ### Ways to Contribute
 
+**New here?** See our [Onboarding Guide](ONBOARDING.md) for detailed instructions!
+
 - **Report bugs**: Use the [bug report template](.github/ISSUE_TEMPLATE/bug_report.md)
 - **Suggest features**: Use the [feature request template](.github/ISSUE_TEMPLATE/feature_request.md)
 - **Improve documentation**: Use the [documentation template](.github/ISSUE_TEMPLATE/documentation.md)
@@ -366,10 +379,11 @@ We welcome contributions from everyone! Here's how you can help:
 
 1. Read the [Code of Conduct](CODE_OF_CONDUCT.md)
 2. Read the [Contributing Guidelines](CONTRIBUTING.md)
-3. Find an issue to work on or create a new one
-4. Fork the repository and create a branch
-5. Make your changes following our standards
-6. Submit a pull request
+3. **New contributors**: Check out the [Onboarding Guide](ONBOARDING.md)
+4. Find an issue to work on or create a new one
+5. Fork the repository and create a branch (see [Branch Naming](BRANCH_NAMING.md))
+6. Make your changes following our standards
+7. Submit a pull request
 
 ### Recognition
 

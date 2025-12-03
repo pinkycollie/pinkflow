@@ -1,0 +1,234 @@
+# GitHub Labels Configuration for PinkFlow
+# This file defines all labels used in the repository for issues and pull requests
+# Labels help organize, categorize, and track work across the project
+
+# Priority Labels
+- name: "priority: critical"
+  color: "d73a4a"
+  description: "Critical priority - needs immediate attention"
+
+- name: "priority: high"
+  color: "e99695"
+  description: "High priority - should be addressed soon"
+
+- name: "priority: medium"
+  color: "fbca04"
+  description: "Medium priority - normal workflow"
+
+- name: "priority: low"
+  color: "c2e0c6"
+  description: "Low priority - nice to have"
+
+# Type Labels
+- name: "type: bug"
+  color: "d73a4a"
+  description: "Something isn't working correctly"
+
+- name: "type: feature"
+  color: "0e8a16"
+  description: "New feature or enhancement request"
+
+- name: "type: documentation"
+  color: "0075ca"
+  description: "Documentation improvements or additions"
+
+- name: "type: refactor"
+  color: "fbca04"
+  description: "Code refactoring without functional changes"
+
+- name: "type: test"
+  color: "1d76db"
+  description: "Test additions or improvements"
+
+- name: "type: security"
+  color: "d93f0b"
+  description: "Security vulnerability or improvement"
+
+- name: "type: performance"
+  color: "5319e7"
+  description: "Performance improvement"
+
+- name: "type: dependencies"
+  color: "0366d6"
+  description: "Dependency updates"
+
+- name: "type: ci/cd"
+  color: "f9d0c4"
+  description: "CI/CD pipeline improvements"
+
+# Status Labels
+- name: "status: needs triage"
+  color: "ededed"
+  description: "Needs initial review and categorization"
+
+- name: "status: in progress"
+  color: "0e8a16"
+  description: "Currently being worked on"
+
+- name: "status: blocked"
+  color: "d93f0b"
+  description: "Blocked by another issue or dependency"
+
+- name: "status: needs review"
+  color: "fbca04"
+  description: "Ready for review"
+
+- name: "status: on hold"
+  color: "c5def5"
+  description: "Paused temporarily"
+
+# Component Labels (PinkFlow Ecosystem)
+- name: "component: frontend"
+  color: "1d76db"
+  description: "React/TypeScript frontend"
+
+- name: "component: backend"
+  color: "0e8a16"
+  description: "FastAPI backend services"
+
+- name: "component: deafauth"
+  color: "5319e7"
+  description: "DeafAuth identity service"
+
+- name: "component: fibonrose"
+  color: "e99695"
+  description: "FibonRose trust engine"
+
+- name: "component: pinksync"
+  color: "0075ca"
+  description: "PinkSync real-time service"
+
+- name: "component: 360magicians"
+  color: "f9d0c4"
+  description: "360Magicians AI agents"
+
+- name: "component: workflow"
+  color: "bfdadc"
+  description: "Workflow system"
+
+- name: "component: infrastructure"
+  color: "d4c5f9"
+  description: "Infrastructure and deployment"
+
+# Accessibility Labels
+- name: "accessibility: deaf-first"
+  color: "7057ff"
+  description: "Deaf-First design principles"
+
+- name: "accessibility: wcag"
+  color: "c5def5"
+  description: "WCAG compliance improvements"
+
+- name: "accessibility: screen reader"
+  color: "bfd4f2"
+  description: "Screen reader compatibility"
+
+# Size/Effort Labels
+- name: "size: xs"
+  color: "c2e0c6"
+  description: "Extra small effort (< 1 hour)"
+
+- name: "size: s"
+  color: "a2eeef"
+  description: "Small effort (1-3 hours)"
+
+- name: "size: m"
+  color: "0e8a16"
+  description: "Medium effort (1 day)"
+
+- name: "size: l"
+  color: "fbca04"
+  description: "Large effort (2-3 days)"
+
+- name: "size: xl"
+  color: "d93f0b"
+  description: "Extra large effort (1+ week)"
+
+# Experience Level Labels
+- name: "good first issue"
+  color: "7057ff"
+  description: "Good for newcomers to the project"
+
+- name: "help wanted"
+  color: "008672"
+  description: "Extra attention is needed from community"
+
+- name: "mentor available"
+  color: "c2e0c6"
+  description: "A mentor is available to help with this issue"
+
+# Special Labels
+- name: "breaking change"
+  color: "d73a4a"
+  description: "Introduces breaking changes"
+
+- name: "needs discussion"
+  color: "d876e3"
+  description: "Requires community discussion"
+
+- name: "wontfix"
+  color: "ffffff"
+  description: "This will not be worked on"
+
+- name: "duplicate"
+  color: "cfd3d7"
+  description: "This issue or pull request already exists"
+
+- name: "invalid"
+  color: "e4e669"
+  description: "This doesn't seem right"
+
+- name: "question"
+  color: "d876e3"
+  description: "Further information is requested"
+
+# Milestone/Phase Labels
+- name: "milestone: foundation"
+  color: "1d76db"
+  description: "Foundation milestone (v0.1.0)"
+
+- name: "milestone: backend"
+  color: "0e8a16"
+  description: "Backend integration (v0.2.0)"
+
+- name: "milestone: realtime"
+  color: "5319e7"
+  description: "Real-time features (v0.3.0)"
+
+- name: "milestone: ai"
+  color: "f9d0c4"
+  description: "AI integration (v0.4.0)"
+
+- name: "milestone: v1.0"
+  color: "0075ca"
+  description: "Production release (v1.0.0)"
+
+# Environment Labels
+- name: "env: sandbox"
+  color: "bfdadc"
+  description: "Sandbox environment"
+
+- name: "env: staging"
+  color: "fbca04"
+  description: "Staging environment"
+
+- name: "env: production"
+  color: "d73a4a"
+  description: "Production environment"
+
+# Workflow/Process Labels
+- name: "needs: design"
+  color: "e99695"
+  description: "Needs design work"
+
+- name: "needs: api"
+  color: "0075ca"
+  description: "Needs API changes"
+
+- name: "needs: tests"
+  color: "1d76db"
+  description: "Needs test coverage"
+
+- name: "ready to merge"
+  color: "0e8a16"
+  description: "Approved and ready to merge"

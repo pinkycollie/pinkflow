@@ -8,12 +8,27 @@ PinkFlow is part of the MBTQ.dev Deaf-First innovation ecosystem. It serves as a
 
 ## 📋 Table of Contents
 
+- [Quick Start](#quick-start)
 - [Code of Conduct](#code-of-conduct)
 - [How Can I Contribute?](#how-can-i-contribute)
 - [Development Setup](#development-setup)
 - [Submission Guidelines](#submission-guidelines)
 - [Coding Standards](#coding-standards)
 - [Community and Support](#community-and-support)
+
+---
+
+## 🚀 Quick Start
+
+**New to PinkFlow?** Check out our comprehensive guides:
+
+- 📘 **[Onboarding Guide](ONBOARDING.md)** - Step-by-step guide for new contributors
+- 🌿 **[Branch Naming Conventions](BRANCH_NAMING.md)** - How to name your branches
+- 🏷️ **[Labels Guide](LABELS.md)** - Understanding our label system
+
+These guides will help you get started quickly and follow our best practices.
+
+---
 
 ## 📜 Code of Conduct
 
@@ -94,7 +109,7 @@ The PinkFlow ecosystem includes multiple components. Depending on what you're wo
    - For backend development, set up a virtual environment and install requirements
    - See component-specific README files for detailed setup instructions
 
-3. **Create a branch** for your work:
+3. **Create a branch** for your work (see [Branch Naming Conventions](BRANCH_NAMING.md)):
    ```bash
    git checkout -b feature/your-feature-name
    ```
@@ -119,7 +134,7 @@ The PinkFlow ecosystem includes multiple components. Depending on what you're wo
 
 ### PR Title Format
 
-Use conventional commit format:
+Use conventional commit format (see [Branch Naming Conventions](BRANCH_NAMING.md) for details):
 - `feat: add new feature`
 - `fix: resolve bug in component`
 - `docs: update README`
@@ -127,6 +142,8 @@ Use conventional commit format:
 - `refactor: restructure module`
 - `test: add test coverage`
 - `chore: update dependencies`
+
+For more details on branching and naming, see [BRANCH_NAMING.md](BRANCH_NAMING.md).
 
 ### Commit Message Guidelines
 
