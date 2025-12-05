@@ -90,6 +90,7 @@ Welcome to the PinkFlow documentation! This index helps you find the right infor
 1. 🔌 **[API.md](API.md)** - API documentation
 2. 🐍 **[backend.md](backend.md)** - Backend documentation
 3. 🎨 **[SIGN_LANGUAGE_FEEDBACK.md](SIGN_LANGUAGE_FEEDBACK.md)** - Sign language feature specs
+4. 🤖 **[context/agents.md](context/agents.md)** - AI agents and 360Magicians system
 
 ---
 

@@ -201,7 +201,7 @@ REACT_APP_WS_URL=ws://localhost:3001
     * **DeafAuth** (Identity & Authentication)
     * **PinkSync** (Real-time sync & notifications)
     * **FibonRose** (Trust & Ethics Engine)
-    * **360Magicians** (AI Business Agents)
+    * **360Magicians** (AI Business Agents) - [See Agents Documentation](context/agents.md)
   * SQLAlchemy models for unified schema
   * API routers & placeholder services
   * JSON schema contract (`build.json`)
