@@ -17,6 +17,7 @@ PinkFlow integrates AI-driven agents through the **360Magicians** suite, providi
 - [Agent Types](#agent-types)
 - [Integration Points](#integration-points)
 - [Workflow Automation](#workflow-automation)
+- [Project Context Management](#project-context-management)
 - [Development Guide](#development-guide)
 - [Configuration](#configuration)
 
@@ -296,6 +297,405 @@ workflow.connect(
         custom_function=lambda ctx: ai_agent.should_approve(ctx)
     )
 )
+```
+
+---
+
+## 🔄 Project Context Management
+
+### Managing BUILD or PLAN Context for Incoming Projects
+
+When external projects are cloned or forked into the PinkFlow ecosystem, agents need context to determine whether to BUILD (implement/develop) or PLAN (design/architect) for that project. This section describes how agents handle incoming projects.
+
+#### Context Detection
+
+```python
+# Agent context detection for incoming projects
+from pinkflow.agents import ProjectContextDetector
+
+async def detect_project_context(repo_url: str, repo_path: str) -> dict:
+    """Detect project context from cloned/forked repository."""
+    detector = ProjectContextDetector()
+    
+    context = await detector.analyze(
+        repo_url=repo_url,
+        repo_path=repo_path,
+        checks=[
+            'existing_structure',
+            'documentation_completeness',
+            'build_configuration',
+            'test_coverage',
+            'dependencies'
+        ]
+    )
+    
+    return {
+        'mode': context.recommended_mode,  # 'BUILD' or 'PLAN'
+        'readiness': context.readiness_score,  # 0-100
+        'gaps': context.identified_gaps,
+        'suggestions': context.agent_suggestions
+    }
+```
+
+#### Mode Determination Logic
+
+**PLAN Mode** - When agents should focus on planning and design:
+- New or skeleton projects with minimal implementation
+- Projects missing critical documentation
+- Projects without clear architecture
+- Fork intended for major redesign
+- Readiness score < 40%
+
+**BUILD Mode** - When agents should focus on implementation:
+- Projects with clear architecture and documentation
+- Existing codebases needing feature additions
+- Well-structured projects with defined patterns
+- Fork intended for incremental improvements
+- Readiness score ≥ 40%
+
+#### Agent Workflow for Cloned Projects
+
+```
+Incoming Project (Clone/Fork)
+        ↓
+   Detect Context
+        ↓
+    ┌───┴───┐
+    │       │
+ PLAN     BUILD
+  Mode     Mode
+    │       │
+    ├───────┤
+    │       │
+    ▼       ▼
+Generate   Generate
+Planning   Implementation
+Agents     Agents
+    │       │
+    └───┬───┘
+        ↓
+   Execute Workflow
+        ↓
+    Deliverables
+```
+
+### Configuration by Project Source
+
+#### GitHub Clone Configuration
+
+```yaml
+# config/project_context.yml
+github_clone:
+  default_mode: "auto-detect"  # or "BUILD" or "PLAN"
+  
+  detection_rules:
+    # Trigger PLAN mode if:
+    plan_triggers:
+      - missing_readme: true
+      - no_build_config: true
+      - empty_src_directory: true
+      - no_package_manager: true
+      - readiness_threshold: 40
+    
+    # Trigger BUILD mode if:
+    build_triggers:
+      - has_tests: true
+      - has_ci_config: true
+      - dependency_manifest_exists: true
+      - readiness_threshold: 40
+  
+  agent_preferences:
+    plan_mode_agents:
+      - "architecture-planner"
+      - "doc-generator"
+      - "requirement-analyzer"
+      - "tech-stack-advisor"
+    
+    build_mode_agents:
+      - "code-generator"
+      - "test-generator"
+      - "code-reviewer"
+      - "refactor-assistant"
+```
+
+#### Fork-Specific Handling
+
+```python
+# Handle forked projects
+from pinkflow.agents import ForkAnalyzer
+
+async def analyze_fork(original_repo: str, fork_repo: str) -> dict:
+    """Analyze fork to determine agent strategy."""
+    analyzer = ForkAnalyzer()
+    
+    # Compare fork with original
+    diff = await analyzer.compare(original_repo, fork_repo)
+    
+    # Determine intent
+    intent = analyzer.classify_intent(diff, patterns=[
+        'feature_addition',
+        'bug_fix',
+        'complete_rewrite',
+        'architecture_change',
+        'documentation_improvement'
+    ])
+    
+    # Recommend agent mode
+    if intent in ['complete_rewrite', 'architecture_change']:
+        mode = 'PLAN'
+        focus = 'design_and_architecture'
+    else:
+        mode = 'BUILD'
+        focus = 'implementation_and_testing'
+    
+    return {
+        'mode': mode,
+        'focus': focus,
+        'divergence': diff.divergence_score,
+        'recommended_agents': analyzer.get_agents_for_intent(intent)
+    }
+```
+
+### Project Onboarding Workflow
+
+#### Automatic Context Setup
+
+```python
+# Automatic project onboarding
+from pinkflow.agents import ProjectOnboarder
+
+async def onboard_project(repo_url: str, source: str) -> dict:
+    """Onboard incoming project and set up agent context."""
+    onboarder = ProjectOnboarder()
+    
+    # Clone/Fork the project
+    project = await onboarder.import_project(
+        repo_url=repo_url,
+        source=source  # 'clone' or 'fork'
+    )
+    
+    # Detect context
+    context = await onboarder.detect_context(project)
+    
+    # Initialize appropriate agents
+    agents = await onboarder.initialize_agents(
+        mode=context['mode'],
+        project=project,
+        focus_areas=context['gaps']
+    )
+    
+    # Create workflow
+    workflow = await onboarder.create_workflow(
+        agents=agents,
+        context=context,
+        deliverables=context['suggestions']
+    )
+    
+    return {
+        'project_id': project.id,
+        'mode': context['mode'],
+        'agents': [a.name for a in agents],
+        'workflow_id': workflow.id,
+        'status': 'ready'
+    }
+```
+
+#### Manual Context Override
+
+```python
+# Allow manual override of detected context
+from pinkflow.agents import AgentRegistry
+
+# Force PLAN mode regardless of detection
+project_context = {
+    'mode': 'PLAN',  # Override auto-detection
+    'reason': 'Restructuring for Deaf-First architecture',
+    'custom_agents': [
+        'accessibility-analyzer',
+        'deaf-first-architect',
+        'sign-language-integration'
+    ]
+}
+
+# Initialize with custom context
+workflow = await create_custom_workflow(
+    project=project,
+    context=project_context
+)
+```
+
+### Context Persistence
+
+#### Storing Project Context
+
+```python
+# Store context for reuse across agent invocations
+from pinkflow.storage import ContextStore
+
+async def save_project_context(project_id: str, context: dict):
+    """Persist project context for future agent use."""
+    store = ContextStore()
+    
+    await store.save(
+        key=f"project:{project_id}:context",
+        data={
+            'mode': context['mode'],
+            'detected_at': datetime.utcnow(),
+            'readiness_score': context['readiness'],
+            'active_agents': context['agents'],
+            'workflow_state': context['workflow'],
+            'metadata': {
+                'repo_url': context['repo_url'],
+                'source': context['source'],
+                'last_analysis': context['analysis']
+            }
+        },
+        ttl=86400 * 30  # 30 days
+    )
+
+async def load_project_context(project_id: str) -> dict:
+    """Load saved project context."""
+    store = ContextStore()
+    return await store.get(f"project:{project_id}:context")
+```
+
+### Best Practices
+
+#### 1. Always Detect Context First
+
+```python
+# Good: Detect context before agent initialization
+context = await detect_project_context(repo_url, repo_path)
+agents = await initialize_agents_for_mode(context['mode'])
+
+# Bad: Assuming mode without detection
+agents = await initialize_agents_for_mode('BUILD')  # Don't assume!
+```
+
+#### 2. Respect Project Boundaries
+
+```python
+# Respect existing project structure
+if context['mode'] == 'BUILD':
+    # Work within existing architecture
+    agent.respect_patterns(project.detected_patterns)
+    agent.follow_conventions(project.coding_style)
+else:  # PLAN mode
+    # Suggest improvements but preserve core intent
+    agent.propose_architecture(project.requirements)
+    agent.maintain_compatibility(project.constraints)
+```
+
+#### 3. Handle Ambiguous Cases
+
+```python
+# Handle cases where mode is unclear
+if context['readiness'] >= 35 and context['readiness'] <= 45:
+    # Borderline case - get user input
+    mode = await prompt_user_for_mode(
+        project=project,
+        context=context,
+        suggestion=context['mode']
+    )
+else:
+    # Clear case - proceed with detected mode
+    mode = context['mode']
+```
+
+### Integration with PinkFlow Workflow
+
+#### Workflow-Based Context Management
+
+```python
+from workflow_system.core import WorkflowBuilder, Environment
+
+def create_project_intake_workflow():
+    """Workflow for incoming project analysis and setup."""
+    return (
+        WorkflowBuilder('project_intake', 'Project Intake', Environment.PRODUCTION)
+        .add_start_node('start', 'Start')
+        .add_process_node('clone', 'Clone/Fork Project', clone_project)
+        .add_process_node('analyze', 'Analyze Context', detect_project_context)
+        .add_decision_node('mode_check', 'Check Mode')
+        .add_process_node('plan_setup', 'Setup PLAN Agents', setup_plan_agents)
+        .add_process_node('build_setup', 'Setup BUILD Agents', setup_build_agents)
+        .add_process_node('execute', 'Execute Agents', run_agents)
+        .add_end_node('end', 'Complete')
+        
+        .connect('start', 'clone')
+        .connect('clone', 'analyze')
+        .connect('analyze', 'mode_check')
+        .connect(
+            'mode_check', 'plan_setup',
+            EdgeCondition(EdgeConditionType.EQUALS, 'mode', 'PLAN')
+        )
+        .connect(
+            'mode_check', 'build_setup',
+            EdgeCondition(EdgeConditionType.EQUALS, 'mode', 'BUILD')
+        )
+        .connect('plan_setup', 'execute')
+        .connect('build_setup', 'execute')
+        .connect('execute', 'end')
+        .build()
+    )
+```
+
+### Examples
+
+#### Example 1: Clone New Project (PLAN Mode)
+
+```python
+# New project with minimal code
+result = await onboard_project(
+    repo_url="https://github.com/user/new-project",
+    source="clone"
+)
+
+# Result:
+# {
+#   'mode': 'PLAN',
+#   'reason': 'Empty src directory, no documentation',
+#   'agents': ['architecture-planner', 'doc-generator', 'tech-stack-advisor'],
+#   'deliverables': ['architecture.md', 'setup-guide.md', 'api-design.md']
+# }
+```
+
+#### Example 2: Fork Existing Project (BUILD Mode)
+
+```python
+# Well-established project needing features
+result = await onboard_project(
+    repo_url="https://github.com/user/established-project",
+    source="fork"
+)
+
+# Result:
+# {
+#   'mode': 'BUILD',
+#   'reason': 'Readiness score: 85%, complete documentation',
+#   'agents': ['code-generator', 'test-generator', 'code-reviewer'],
+#   'deliverables': ['feature-code', 'unit-tests', 'integration-tests']
+# }
+```
+
+#### Example 3: Mixed Mode (PLAN then BUILD)
+
+```python
+# Project needs architecture refinement before building
+result = await onboard_project(
+    repo_url="https://github.com/user/refactor-project",
+    source="fork"
+)
+
+# Result:
+# {
+#   'mode': 'PLAN',
+#   'reason': 'Architecture gaps detected',
+#   'next_mode': 'BUILD',
+#   'agents': ['architecture-planner', 'refactor-planner'],
+#   'workflow': 'sequential',  # PLAN first, then BUILD
+#   'deliverables': ['refactor-plan.md', 'new-architecture.md']
+# }
 ```
 
 ---
