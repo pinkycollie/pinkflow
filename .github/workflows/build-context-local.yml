@@ -1,0 +1,41 @@
+name: Build Community Context (local)
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 4 * * *' # daily at 04:00 UTC
+
+jobs:
+  build-and-open-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r scripts/requirements.txt
+
+      - name: Run builder
+        run: |
+          python scripts/build_context_local.py
+
+      - name: Create PR with changes
+        uses: peter-evans/create-pull-request@v5
+        with:
+          title: "Auto: update community context (local builder)"
+          commit-message: "Auto: update community context (local builder)"
+          branch: auto/context-builder-${{ github.run_id }}
+          body: |
+            This PR was created by the scheduled Community Context Builder (local).
+            Please review the generated config/context.json, verify sources, and merge when approved.
+          labels: auto-generated,context-builder
+          path: config/context.json

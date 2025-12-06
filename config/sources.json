@@ -1,0 +1,14 @@
+[
+  {
+    "id": "w3c-wai",
+    "title": "W3C Web Accessibility Initiative",
+    "url": "https://www.w3.org/WAI/",
+    "type": "web"
+  },
+  {
+    "id": "nad-captioning",
+    "title": "NAD Captioning Guidance (example)",
+    "url": "https://www.nad.org/resource/captioning-guidelines-example/",
+    "type": "web"
+  }
+]

@@ -87,3 +87,7 @@ config.local.*
 .vercel
 .firebase
 .gcloud
+
+# Context Builder artifacts
+.faiss_index.index
+.context_docs.json
