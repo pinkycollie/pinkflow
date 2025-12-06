@@ -105,7 +105,7 @@ def main():
         url = s.get("url")
         text = fetch_text(url)
         chunks = chunk_text(text)
-        for i,ch in enumerate(chunks):
+        for i, ch in enumerate(chunks):
             doc_texts.append(ch)
             doc_meta.append({"source": url, "title": s.get("title",""), "source_id": s.get("id",""), "chunk_index": i})
 
@@ -162,16 +162,18 @@ def main():
 
     # dedupe and trim
     def uniq_keep_first(lst):
-        seen=set(); out=[]
+        seen = set()
+        out = []
         for x in lst:
-            k=x.strip().lower()
+            k = x.strip().lower()
             if k and k not in seen:
-                seen.add(k); out.append(x)
+                seen.add(k)
+                out.append(x)
         return out
 
-    context["core_principles"]=uniq_keep_first(context["core_principles"])[:10]
-    context["priority"]=["Deaf Accessibility","Legal Compliance","Trust"]
-    context["legal_risks"]=["Failure to provide accurate captions","No transcript for audio content"]
+    context["core_principles"] = uniq_keep_first(context["core_principles"])[:10]
+    context["priority"] = ["Deaf Accessibility","Legal Compliance","Trust"]
+    context["legal_risks"] = ["Failure to provide accurate captions","No transcript for audio content"]
 
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT_PATH.write_text(json.dumps(context, indent=2, ensure_ascii=False), encoding="utf8")
