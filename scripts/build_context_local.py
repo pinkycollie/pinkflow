@@ -95,7 +95,6 @@ def main():
     emb_model = SentenceTransformer("all-MiniLM-L6-v2")
     summarizer = pipeline("summarization", model="facebook/bart-large-cnn")  # CPU-friendly-ish
 
-    existing_idx, existing_docs = load_faiss()
     doc_texts = []
     doc_meta = []
 
@@ -159,7 +158,7 @@ def main():
         # naive extraction: split sentences into bullets
         bullets = [s.strip() for s in summary_text.split('. ') if s.strip()]
         context["core_principles"].extend(bullets[:3])
-        context["sources"].extend([m["source"] for m in doc_meta[:k]])
+        context["sources"].extend([doc_meta[idx]["source"] for idx in I[0]])
 
     # dedupe and trim
     def uniq_keep_first(lst):
