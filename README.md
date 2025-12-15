@@ -8,6 +8,8 @@
 
 PinkFlow (part of MBTQ.dev) is a **Deaf-First ecosystem** built to empower entrepreneurs, researchers, and creators with AI-driven, accessible business tools. It is designed around the **Idea → Build → Grow → Managed** lifecycle and powered by **MagicianCore** and the **360Magicians** suite.
 
+🌐 **[Try the Live Demo](https://pinkycollie.github.io/pinkflow/)** - Test sign language models directly from GitHub!
+
 ---
 
 ## 📑 Table of Contents
@@ -91,6 +93,8 @@ See [webapp/README.md](webapp/README.md) for setup instructions.
 **Start here!** Our comprehensive onboarding guide will walk you through everything:
 
 📘 **[Onboarding Guide](ONBOARDING.md)** - Complete step-by-step guide for new contributors
+
+🎯 **[Try the Live Demo](https://pinkycollie.github.io/pinkflow/)** - Test any GitHub sign language model instantly!
 
 Quick links:
 - 🌿 [Branch Naming Conventions](BRANCH_NAMING.md)
