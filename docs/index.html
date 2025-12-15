@@ -727,9 +727,15 @@
             const repoUrl = repoUrlInput.value.trim();
             if (!repoUrl) return;
 
-            // Validate GitHub URL
-            if (!repoUrl.includes('github.com')) {
-                alert('Please enter a valid GitHub repository URL');
+            // Validate GitHub URL properly
+            try {
+                const url = new URL(repoUrl);
+                if (url.hostname !== 'github.com') {
+                    alert('Please enter a valid GitHub repository URL (https://github.com/...)');
+                    return;
+                }
+            } catch (error) {
+                alert('Please enter a valid URL');
                 return;
             }
 
@@ -754,9 +760,18 @@
                 ? 2 * (precision * recall) / (precision + recall)
                 : 0;
 
+            // Extract repository name properly
+            let repoName = '';
+            try {
+                const url = new URL(repoUrl);
+                const pathParts = url.pathname.split('/').filter(Boolean);
+                repoName = pathParts.slice(0, 2).join('/');
+            } catch (error) {
+                repoName = 'repository';
+            }
+
             // Update UI with results
-            document.getElementById('testedRepo').textContent = 
-                repoUrl.split('/').slice(-2).join('/');
+            document.getElementById('testedRepo').textContent = repoName;
             
             document.getElementById('metricAccuracy').textContent = accuracy.toFixed(1) + '%';
             document.getElementById('metricPrecision').textContent = precision.toFixed(1) + '%';
