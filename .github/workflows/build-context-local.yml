@@ -32,7 +32,7 @@ jobs:
           python scripts/build_context_local.py
 
       - name: Create PR with changes
-        uses: peter-evans/create-pull-request@v5
+        uses: peter-evans/create-pull-request@v8
         with:
           title: "Auto: update community context (local builder)"
           commit-message: "Auto: update community context (local builder)"
