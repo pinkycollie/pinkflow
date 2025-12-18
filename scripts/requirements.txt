@@ -2,5 +2,5 @@ sentence-transformers==2.2.2
 faiss-cpu==1.7.4
 requests==2.32.4
 beautifulsoup4==4.12.2
-transformers==4.53.0
+transformers==4.57.3
 torch==2.8.0
