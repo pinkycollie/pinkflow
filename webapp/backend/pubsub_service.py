@@ -187,7 +187,12 @@ class PubSubService:
     
     async def _notify_subscribers(self, topic: str, event: Event):
         """Notify all subscribers of a topic"""
-        subscriber_ids = self.topic_subscribers.get(topic, set())
+        # Get direct subscribers to this topic
+        subscriber_ids = self.topic_subscribers.get(topic, set()).copy()
+        
+        # Add wildcard subscribers
+        wildcard_subscribers = self.topic_subscribers.get('*', set())
+        subscriber_ids.update(wildcard_subscribers)
         
         for subscriber_id in subscriber_ids:
             subscriber = self.subscribers.get(subscriber_id)
