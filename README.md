@@ -2,7 +2,20 @@
 
 [![CI/CD Pipeline](https://github.com/pinkycollie/PinkFlow/actions/workflows/basic.yml/badge.svg)](https://github.com/pinkycollie/PinkFlow/actions/workflows/basic.yml)
 [![CodeQL](https://github.com/pinkycollie/PinkFlow/actions/workflows/codeql.yml/badge.svg)](https://github.com/pinkycollie/PinkFlow/actions/workflows/codeql.yml)
-[![License](https://img.shields.io/badge/license-TBD-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/License-PolyForm_Noncommercial-blue.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-0.1.0-orange)](VERSION)
+[![Status](https://img.shields.io/badge/Status-Experimental-yellow)](MILESTONES.md)
+
+[![React](https://img.shields.io/badge/React-18+-61DAFB?logo=react&logoColor=white)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5+-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Python](https://img.shields.io/badge/Python-3.8+-3776AB?logo=python&logoColor=white)](https://python.org/)
+
+[![Accessibility](https://img.shields.io/badge/Accessibility-WCAG_2.1_AA-blue?logo=accessibility)](https://www.w3.org/WAI/WCAG21/quickref/)
+[![Deaf-First](https://img.shields.io/badge/Design-Deaf--First-purple)](https://github.com/pinkycollie/pinkflow)
+[![ASL Support](https://img.shields.io/badge/ASL-Supported-green)](https://github.com/pinkycollie/pinkflow)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![Live Demo](https://img.shields.io/badge/Demo-Live-success)](https://pinkycollie.github.io/pinkflow/)
 
 ### 🚀 Status: Foundation Built, Backend Integration in Progress
 
