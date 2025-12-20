@@ -90,6 +90,12 @@ See [webapp/README.md](webapp/README.md) for setup instructions.
   - Real-time admin notifications
   - Deaf-First accessibility design
   - See [SIGN_LANGUAGE_FEEDBACK.md](SIGN_LANGUAGE_FEEDBACK.md) for details
+- **Voting and Broadcasting System**: Real-time voting and notifications (✅ **IMPLEMENTED**)
+  - Privacy-protected voting on test results and feedback
+  - FibonRose trust metrics based on voting history
+  - PubSub broadcasting for test container updates
+  - Visual notification banners with IoT/Vibration API support
+  - See [VOTING_BROADCASTING_SYSTEM.md](VOTING_BROADCASTING_SYSTEM.md) for details
 - **Live Backend Integration**: FastAPI services for authentication, workspace, and governance
 - **Real-time Sync**: PinkSync WebSocket service for multi-user collaboration
 - **AI Proxy**: Secure backend proxy for AI API calls

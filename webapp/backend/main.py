@@ -22,6 +22,12 @@ import uuid
 # Import PinkFlow testing modules
 from .pinkflow import PinkFlowTester, ModelTestResult, ModelTestStatus
 from .pinkflow_mcp import run_test_on_repo, batch_test_repos, MCPGitHubTester
+from .pubsub_service import (
+    get_pubsub_service, EventType, NotificationPriority, Event
+)
+from .voting_service import (
+    get_voting_service, VoteType, VotableItemType
+)
 
 # Backwards compatibility aliases
 TestResult = ModelTestResult
@@ -140,6 +146,40 @@ class HealthResponse(BaseModel):
     version: str
     timestamp: datetime
     services: Dict[str, str]
+
+
+class VoteRequest(BaseModel):
+    """Request to cast a vote"""
+    item_id: str
+    item_type: str  # model_test, feedback, proposal, contribution
+    vote_type: str  # upvote, downvote, approve, reject
+
+
+class VoteResponse(BaseModel):
+    """Response with vote summary"""
+    item_id: str
+    total_votes: int
+    upvotes: int
+    downvotes: int
+    approvals: int
+    rejections: int
+    score: float
+
+
+class SubscriptionRequest(BaseModel):
+    """Request to subscribe to topics"""
+    subscriber_id: str
+    topics: List[str]
+    iot_enabled: bool = False
+    vibration_enabled: bool = False
+
+
+class NotificationRequest(BaseModel):
+    """Request to send a notification"""
+    topic: str
+    event_type: str
+    data: Dict[str, Any]
+    priority: str = "normal"
 
 
 # ============================================
@@ -358,36 +398,78 @@ async def get_tool(tool_id: str):
 async def test_model(request: ModelTestRequest, background_tasks: BackgroundTasks):
     """Test a model from a GitHub repository"""
     test_id = str(uuid.uuid4())
+    pubsub_service = get_pubsub_service()
 
-    # Use MCP tester for GitHub repos
-    tester = MCPGitHubTester()
-    result = tester.test_repo_with_mcp(request.repo_url)
-
-    test_result = result.get('test_results', {})
-
-    response = ModelTestResponse(
-        id=test_id,
-        repo_url=request.repo_url,
-        status=TestStatus.GREEN.value if result.get('passed') else TestStatus.RED.value,
-        accuracy=test_result.get('accuracy'),
-        precision=test_result.get('precision'),
-        recall=test_result.get('recall'),
-        f1_score=test_result.get('f1_score'),
-        processing_time=test_result.get('processing_time'),
-        errors=[],
-        metadata={
-            'model_type': result.get('model_type'),
-            'repo_info': result.get('repo_info'),
-            'structure': result.get('structure')
+    # Broadcast test started event
+    await pubsub_service.publish(
+        topic="test.model",
+        event_type=EventType.TEST_STARTED,
+        data={
+            'test_id': test_id,
+            'repo_url': request.repo_url,
+            'test_type': request.test_type
         },
-        created_at=datetime.now(),
-        passed=result.get('passed', False)
+        priority=NotificationPriority.NORMAL
     )
 
-    if request.save_results:
-        test_results_store[test_id] = response
+    try:
+        # Use MCP tester for GitHub repos
+        tester = MCPGitHubTester()
+        result = tester.test_repo_with_mcp(request.repo_url)
 
-    return response
+        test_result = result.get('test_results', {})
+
+        response = ModelTestResponse(
+            id=test_id,
+            repo_url=request.repo_url,
+            status=TestStatus.GREEN.value if result.get('passed') else TestStatus.RED.value,
+            accuracy=test_result.get('accuracy'),
+            precision=test_result.get('precision'),
+            recall=test_result.get('recall'),
+            f1_score=test_result.get('f1_score'),
+            processing_time=test_result.get('processing_time'),
+            errors=[],
+            metadata={
+                'model_type': result.get('model_type'),
+                'repo_info': result.get('repo_info'),
+                'structure': result.get('structure')
+            },
+            created_at=datetime.now(),
+            passed=result.get('passed', False)
+        )
+
+        if request.save_results:
+            test_results_store[test_id] = response
+
+        # Broadcast test completed event
+        await pubsub_service.publish(
+            topic="test.model",
+            event_type=EventType.TEST_COMPLETED,
+            data={
+                'test_id': test_id,
+                'repo_url': request.repo_url,
+                'passed': response.passed,
+                'accuracy': response.accuracy,
+                'status': response.status
+            },
+            priority=NotificationPriority.HIGH if response.passed else NotificationPriority.URGENT
+        )
+
+        return response
+    
+    except Exception as e:
+        # Broadcast test failed event
+        await pubsub_service.publish(
+            topic="test.model",
+            event_type=EventType.TEST_FAILED,
+            data={
+                'test_id': test_id,
+                'repo_url': request.repo_url,
+                'error': str(e)
+            },
+            priority=NotificationPriority.URGENT
+        )
+        raise HTTPException(status_code=500, detail=f"Test failed: {str(e)}")
 
 
 @app.post("/api/test/batch", response_model=BatchTestResponse)
@@ -530,6 +612,209 @@ async def get_statistics():
         ) / sum(1 for t in ACCESSIBILITY_TOOLS if t.deaf_first_score) if any(
             t.deaf_first_score for t in ACCESSIBILITY_TOOLS
         ) else 0
+    }
+
+
+# ============================================
+# Voting Endpoints
+# ============================================
+
+@app.post("/api/vote", response_model=VoteResponse)
+async def cast_vote(request: VoteRequest, user_id: str = Query(..., description="User ID")):
+    """
+    Cast or update a vote on an item.
+    Vote counts are public, but individual voter identities are private.
+    """
+    voting_service = get_voting_service()
+    pubsub_service = get_pubsub_service()
+    
+    try:
+        # Validate and convert enums
+        item_type = VotableItemType(request.item_type)
+        vote_type = VoteType(request.vote_type)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=f"Invalid type: {str(e)}")
+    
+    # Cast vote
+    result = voting_service.cast_vote(
+        user_id=user_id,
+        item_id=request.item_id,
+        item_type=item_type,
+        vote_type=vote_type
+    )
+    
+    # Broadcast vote event via PubSub
+    await pubsub_service.publish(
+        topic=f"votes.{request.item_type}",
+        event_type=EventType.VOTE_CAST,
+        data={
+            'item_id': request.item_id,
+            'vote_counts': result
+        },
+        priority=NotificationPriority.NORMAL
+    )
+    
+    return VoteResponse(**result)
+
+
+@app.delete("/api/vote/{item_id}")
+async def remove_vote(item_id: str, user_id: str = Query(..., description="User ID")):
+    """Remove a user's vote from an item"""
+    voting_service = get_voting_service()
+    
+    result = voting_service.remove_vote(user_id=user_id, item_id=item_id)
+    
+    if result is None:
+        raise HTTPException(status_code=404, detail="Vote not found")
+    
+    return result
+
+
+@app.get("/api/vote/{item_id}", response_model=VoteResponse)
+async def get_vote_summary(item_id: str):
+    """Get vote summary for an item (public, no user info)"""
+    voting_service = get_voting_service()
+    result = voting_service.get_vote_summary(item_id)
+    return VoteResponse(**result)
+
+
+@app.get("/api/vote/{item_id}/status")
+async def get_user_vote_status(item_id: str, user_id: str = Query(..., description="User ID")):
+    """Get user's vote status for a specific item"""
+    voting_service = get_voting_service()
+    status = voting_service.get_user_voting_status(user_id, item_id)
+    
+    if status is None:
+        return {"has_voted": False}
+    
+    return status
+
+
+@app.get("/api/vote/top/{item_type}")
+async def get_top_voted_items(
+    item_type: str,
+    limit: int = Query(default=10, le=100)
+):
+    """Get top voted items by score"""
+    voting_service = get_voting_service()
+    
+    try:
+        item_type_enum = VotableItemType(item_type)
+    except ValueError:
+        raise HTTPException(status_code=400, detail=f"Invalid item_type: {item_type}")
+    
+    return voting_service.get_top_voted_items(item_type=item_type_enum, limit=limit)
+
+
+# ============================================
+# FibonRose Metrics Endpoints
+# ============================================
+
+@app.get("/api/fibonrose/metrics/{user_id}")
+async def get_user_fibonrose_metrics(user_id: str):
+    """
+    Get FibonRose trust metrics for a user based on voting history.
+    Uses Fibonacci-inspired weighting for trust calculations.
+    """
+    voting_service = get_voting_service()
+    return voting_service.get_user_fibonrose_metrics(user_id)
+
+
+# ============================================
+# PubSub Endpoints
+# ============================================
+
+@app.post("/api/subscribe")
+async def subscribe_to_topics(request: SubscriptionRequest):
+    """
+    Subscribe to topics for real-time notifications.
+    Supports IoT devices and Vibration API.
+    """
+    pubsub_service = get_pubsub_service()
+    
+    subscriber = pubsub_service.subscribe(
+        subscriber_id=request.subscriber_id,
+        topics=request.topics,
+        iot_enabled=request.iot_enabled,
+        vibration_enabled=request.vibration_enabled
+    )
+    
+    return {
+        "subscriber_id": subscriber.id,
+        "topics": list(subscriber.topics),
+        "iot_enabled": subscriber.iot_enabled,
+        "vibration_enabled": subscriber.vibration_enabled,
+        "message": "Successfully subscribed to topics"
+    }
+
+
+@app.delete("/api/subscribe/{subscriber_id}")
+async def unsubscribe_from_topics(
+    subscriber_id: str,
+    topics: Optional[List[str]] = Query(None)
+):
+    """Unsubscribe from topics or remove subscriber entirely"""
+    pubsub_service = get_pubsub_service()
+    pubsub_service.unsubscribe(subscriber_id, topics)
+    
+    return {
+        "subscriber_id": subscriber_id,
+        "message": "Successfully unsubscribed"
+    }
+
+
+@app.post("/api/broadcast")
+async def broadcast_notification(request: NotificationRequest):
+    """
+    Broadcast a notification to subscribers.
+    Creates visual banners, IoT alerts, and vibration notifications.
+    """
+    pubsub_service = get_pubsub_service()
+    
+    try:
+        event_type = EventType(request.event_type)
+        priority = NotificationPriority(request.priority)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=f"Invalid type: {str(e)}")
+    
+    await pubsub_service.publish(
+        topic=request.topic,
+        event_type=event_type,
+        data=request.data,
+        priority=priority
+    )
+    
+    subscriber_count = pubsub_service.get_subscriber_count(request.topic)
+    
+    return {
+        "topic": request.topic,
+        "event_type": event_type.value,
+        "priority": priority.value,
+        "subscribers_notified": subscriber_count,
+        "message": "Notification broadcast successfully"
+    }
+
+
+@app.get("/api/broadcast/history")
+async def get_broadcast_history(
+    event_type: Optional[str] = None,
+    limit: int = Query(default=100, le=1000)
+):
+    """Get event broadcast history"""
+    pubsub_service = get_pubsub_service()
+    
+    event_type_enum = None
+    if event_type:
+        try:
+            event_type_enum = EventType(event_type)
+        except ValueError:
+            raise HTTPException(status_code=400, detail=f"Invalid event_type: {event_type}")
+    
+    history = pubsub_service.get_history(event_type=event_type_enum, limit=limit)
+    
+    return {
+        "total": len(history),
+        "events": [event.to_dict() for event in history]
     }
 
 
