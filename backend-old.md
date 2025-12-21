@@ -19,19 +19,6 @@ Mocks: All backend services mocked (authService, contributionService, mockFileSy
 
 ✅ Ready for backend endpoints — clear separation of concerns makes integration straightforward.
 
-🌐 Marketing & Content Layer
-
-**Next.js Marketing Site** (`marketing-site/`) serves as the public-facing content engine:
-
-- Marketing pages, documentation, blog
-- SEO-optimized pages for lead generation
-- Public agency profiles and accessibility scorecards
-- Case studies and landing pages
-- Static generation + server-side rendering
-- **Deployment**: Next.js standalone output (self-contained, containerizable)
-
-This layer attracts visitors through search and content, then converts them to the platform.
-
 🛠️ Backend Tasks
 1. Authentication API (replaces authService.ts)
 
@@ -87,11 +74,7 @@ Prevents client-side key exposure before production
 
 ⚙️ DevOps & Infra Notes
 
-**Marketing Site**: Next.js standalone → Cloud Run, Docker, or any Node.js hosting
-
-**Platform SPA**: Static build → CDN, GitHub Pages, or Cloud Run (containerized)
-
-**Backend Services**: FastAPI → Cloud Run + Cloud SQL
+Deployment: SPA build → Vercel or Cloud Run (verify relevance per repo cleanup plan)
 
 Secrets: Use env vars (API_KEY, JWT_SECRET, etc.) — no secrets in client code
 
@@ -99,14 +82,7 @@ CI/CD: GitHub Actions with staged pipeline (dev → staging → prod)
 
 🌐 Big Picture Alignment
 
-The architecture is now split into distinct layers:
-
-1. **Next.js (Marketing)** → Attracts visitors through SEO and content
-2. **Fresh/React (Platform)** → Converts visitors to users with interactive tools
-3. **PinkFlow (Analytics)** → Analyzes and generates insights
-4. **Content Flywheel** → Insights feed back to marketing content
-
-Backend integration will unlock:
+The frontend is the entry point to MBTQ’s Deaf-First ecosystem. Backend integration will unlock:
 
 Trusted federated identity (DeafAuth + FibonRose)
 
