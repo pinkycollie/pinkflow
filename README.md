@@ -209,41 +209,84 @@ REACT_APP_WS_URL=ws://localhost:3001
 
 ## 🏗️ Architecture
 
-* **MBTQ.dev Frontend (Pinkflow UI)**
+PinkFlow uses a layered architecture with clear separation between content, platform, and analytics:
 
-  * React + TypeScript SPA
-  * Role-based UI (Developer, Researcher, Contributor)
-  * Component-driven architecture
-  * Mocked backend services (ready for API swap-in)
-  * Gemini API integration (to be proxied securely via backend)
+### **Next.js Marketing Site** (`marketing-site/`)
 
-* **MBTQ FastAPI Backend (Scaffolded)**
+The public-facing **content engine** built with Next.js standalone output:
 
-  * Modular services:
+* **Marketing Hub** - Features, updates, and showcasing PinkFlow
+* **Documentation** - Comprehensive guides and API references  
+* **SEO Pages** - Optimized for search visibility and lead generation
+* **Public Agency Profiles** - Accessibility scorecards and compliance reports
+* **Blog** - Updates, insights, and community stories
+* **Case Studies** - Real-world success stories and metrics
+* **Landing Pages** - Lead capture and conversion funnels
 
-    * **DeafAuth** (Identity & Authentication)
-    * **PinkSync** (Real-time sync & notifications)
-    * **FibonRose** (Trust & Ethics Engine)
-    * **360Magicians** (AI Business Agents) - [See Agents Documentation](context/agents.md)
-  * SQLAlchemy models for unified schema
-  * API routers & placeholder services
-  * JSON schema contract (`build.json`)
+**Technology**: Next.js 16+ with standalone output, Tailwind CSS, TypeScript  
+**Purpose**: Attract visitors through SEO and content marketing
 
-* **PinkSync Node.js Service**
+### **MBTQ.dev Platform (Pinkflow UI)** (`webapp/`)
 
-  * WebSocket backbone for real-time collaboration
-  * Powers PinkFlow multi-user workspace
+The interactive platform runtime:
 
-* **MagicianCore Agents**
+* React + TypeScript SPA (Vite)
+* Role-based UI (Developer, Researcher, Contributor)
+* Component-driven architecture
+* Mocked backend services (ready for API swap-in)
+* Gemini API integration (to be proxied securely via backend)
 
-  * AI-driven service agents handling lifecycle: Idea → Build → Grow → Managed
-  * Connected to `business-magician-api`
+**Technology**: React 18+, Vite, TypeScript  
+**Purpose**: Convert visitors to users with interactive tools
+
+### **MBTQ FastAPI Backend** (Scaffolded)
+
+Modular services powering the platform:
+
+* **DeafAuth** (Identity & Authentication)
+* **PinkSync** (Real-time sync & notifications)
+* **FibonRose** (Trust & Ethics Engine)
+* **360Magicians** (AI Business Agents) - [See Agents Documentation](context/agents.md)
+* SQLAlchemy models for unified schema
+* API routers & placeholder services
+* JSON schema contract (`build.json`)
+
+### **PinkSync Node.js Service**
+
+* WebSocket backbone for real-time collaboration
+* Powers PinkFlow multi-user workspace
+
+### **MagicianCore Agents**
+
+* AI-driven service agents handling lifecycle: Idea → Build → Grow → Managed
+* Connected to `business-magician-api`
+
+### Architecture Flow
+
+```
+Next.js Marketing → Attracts visitors through SEO and content
+         ↓
+Platform (Fresh/React) → Converts visitors to users
+         ↓
+PinkFlow Analytics → Analyzes repos and generates insights
+         ↓
+Content Engine → Publishes insights back for SEO
+```
+
+This creates a **self-reinforcing content flywheel** where analytics feed content that attracts more users.
 
 ### Technology Stack
 
-**Frontend**:
+**Marketing/Content Layer**:
+- Next.js 16+ (standalone output)
+- Tailwind CSS
+- TypeScript
+- Static generation + SSR
+
+**Platform Frontend**:
 - React 18+
 - TypeScript
+- Vite
 - Modern hooks-based architecture
 
 **Backend**:
@@ -258,7 +301,7 @@ REACT_APP_WS_URL=ws://localhost:3001
 **Infrastructure**:
 - Google Cloud Platform
 - Cloud Run for services
-- Vercel for frontend (optional)
+- Next.js standalone for marketing
 
 ---
 
@@ -508,13 +551,46 @@ Next step: Replace mocked data with live API calls.
 
 ## 📌 Deployment Notes
 
-* **Frontend**: Deployable on Vercel or Cloud Run (current: Vercel staging, may migrate fully to GCP).
-* **Backend**: FastAPI services structured for Cloud Run + Cloud SQL.
-* **Real-time (PinkSync)**: Node.js service deployable on Cloud Run with WebSocket support.
-* **Environment variables**: Required for Gemini API, Auth secrets, DB URLs.
+### **Marketing Site** (`marketing-site/`)
+
+* **Technology**: Next.js standalone output
+* **Deployment Options**:
+  - Docker container (recommended)
+  - Node.js hosting (Railway, Render, Fly.io)
+  - Google Cloud Run
+  - Any platform supporting Node.js
+* **Build**: `npm run build` creates `.next/standalone/` with self-contained server
+* **Run**: `node server.js` (no node_modules needed in production)
+* **Purpose**: SEO, content marketing, lead generation
+
+See [marketing-site/README.md](marketing-site/README.md) for detailed deployment instructions.
+
+### **Platform Frontend** (`webapp/frontend/`)
+
+* **Technology**: React + Vite SPA
+* **Deployment Options**:
+  - Static hosting (GitHub Pages, Netlify, Vercel)
+  - Cloud Run (containerized)
+  - CDN + object storage
+* **Build**: `npm run build` creates optimized static assets
+* **Purpose**: Interactive platform for authenticated users
+
+### **Backend Services**
+
+* FastAPI services structured for Cloud Run + Cloud SQL
+* Real-time (PinkSync): Node.js service deployable on Cloud Run with WebSocket support
+* Environment variables: Required for Gemini API, Auth secrets, DB URLs
 
 ### Deployment Checklist
 
+**Marketing Site**:
+- [ ] Build Next.js standalone output
+- [ ] Configure environment variables
+- [ ] Deploy to Cloud Run or container platform
+- [ ] Configure domain and SSL
+- [ ] Set up CDN (optional)
+
+**Platform**:
 - [ ] Configure environment variables
 - [ ] Set up database (Cloud SQL)
 - [ ] Configure secrets in Google Cloud

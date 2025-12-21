@@ -1,0 +1,38 @@
+{
+  "name": "pinkflow-marketing-site",
+  "version": "0.1.0",
+  "description": "MBTQ.dev PinkFlow Marketing & Content Engine - Next.js Standalone",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit"
+  },
+  "keywords": [
+    "nextjs",
+    "marketing",
+    "content-engine",
+    "seo",
+    "deaf-first",
+    "accessibility"
+  ],
+  "author": "PinkFlow Team",
+  "license": "SEE LICENSE IN ../LICENSE",
+  "dependencies": {
+    "next": "^16.1.0",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.18",
+    "@types/node": "^25.0.3",
+    "@types/react": "^19.2.7",
+    "autoprefixer": "^10.4.23",
+    "eslint-config-next": "^16.1.0",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.18",
+    "typescript": "^5.9.3"
+  }
+}
