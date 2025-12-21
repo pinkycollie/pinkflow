@@ -6,10 +6,23 @@ const nextConfig = {
   // Optimize images
   images: {
     unoptimized: false,
+    // Only allow images from trusted domains
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: '**',
+        hostname: 'github.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.githubusercontent.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'mbtq.dev',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.mbtq.dev',
       },
     ],
   },
