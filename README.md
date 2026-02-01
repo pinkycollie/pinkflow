@@ -1,7 +1,5 @@
 # PinkFlow – Deaf-First Innovation Ecosystem
 
-[![CI/CD Pipeline](https://github.com/pinkycollie/PinkFlow/actions/workflows/basic.yml/badge.svg)](https://github.com/pinkycollie/PinkFlow/actions/workflows/basic.yml)
-[![CodeQL](https://github.com/pinkycollie/PinkFlow/actions/workflows/codeql.yml/badge.svg)](https://github.com/pinkycollie/PinkFlow/actions/workflows/codeql.yml)
 [![License](https://img.shields.io/badge/License-PolyForm_Noncommercial-blue.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-0.1.0-orange)](VERSION)
 [![Status](https://img.shields.io/badge/Status-Experimental-yellow)](MILESTONES.md)
