@@ -1,0 +1,24 @@
+name: PinkSync Graduation
+
+on:
+  workflow_run:
+    workflows: ["SignSync Validation"]
+    types:
+      - completed
+
+jobs:
+  graduate:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Call PinkSync Graduation API
+        run: |
+          curl -X POST \
+            -H "Authorization: Bearer ${{ secrets.PINKFLOW_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{"developer_confirmed": true}' \
+            https://api.pinkflow.dev/signsync/${{ github.repository }}/graduate
