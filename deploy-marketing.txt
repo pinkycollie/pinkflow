@@ -1,0 +1,110 @@
+# 🌱 What myt  workflow *currently* does  
+The workflow in this repo:
+
+- only runs when **this repo** pushes to `main`
+- only runs when files under `marketing-site/**` change
+- builds the marketing site
+- builds a Docker image
+- pushes it to GHCR
+- optionally deploys to Cloud Run
+
+This is a **self‑contained deploy** for *this* repo.  
+It does **not** react to *other repos*.
+
+---
+
+# 🌟 What I  *actually* want  
+I want:
+
+### ✔ When a **new repo** is created  
+### ✔ Pinkflow runs a **test container**  
+### ✔ If it passes, Pinkflow **deploys a marketing site** for that repo  
+### ✔ Like a “vouching” or “certification” step
+
+This is a **cross‑repository automation**, not a single‑repo workflow.
+
+My  current workflow cannot do that because it only triggers on:
+
+- pushes to this repo  
+- PRs to this repo  
+- manual dispatch  
+
+It has **no awareness of other repos**.
+
+---
+
+# 🧠 The missing piece: A *Pinkflow Orchestrator* workflow  
+To achieve what you described, you need a **controller workflow** in Pinkflow that:
+
+1. Listens for **new repository creation events**
+2. Runs  **test container** against the new repo
+3. If tests pass, triggers the **marketing-site deploy workflow** in the marketing repo for the community
+
+GitHub supports this through:
+
+### **Repository Dispatch**  
+and  
+### **Workflow Dispatch (remote trigger)**
+
+---
+
+# 🧩 How it fits together
+
+## **1. Pinkflow listens for new repos**
+I  enable:
+
+```yaml
+on:
+  repository_dispatch:
+  workflow_dispatch:
+```
+
+Or even:
+
+```yaml
+on:
+  create:
+    types: [repository]
+```
+
+## **2. Pinkflow runs test container**
+This is  “vouching” step.
+
+## **3. Pinkflow triggers marketing-site deploy workflow**
+Using:
+
+```yaml
+- name: Trigger marketing site deploy
+  uses: peter-evans/repository-dispatch@v3
+  with:
+    token: ${{ secrets.PAT }}
+    repository: pinkycollie/pinkflow
+    event-type: deploy-marketing
+    client-payload: '{"repo":"new-repo-name"}'
+```
+
+ marketing-site workflow then adds:
+
+```yaml
+on:
+  repository_dispatch:
+    types: [deploy-marketing]
+```
+
+Now it can deploy **because Pinkflow told it to**, not because someone pushed code.
+
+---
+
+# 🎯 What this gives me  
+I  get exactly what I described:
+
+### ✔ A new repo is created  
+### ✔ Pinkflow tests it  
+### ✔ If it passes, Pinkflow “vouches” for it  
+### ✔ Marketing site deploys automatically  
+### ✔ All controlled from one orchestrator  
+
+This is the missing automation layer.
+
+---
+Just tell me how deep you want to go.
