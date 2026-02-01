@@ -6,13 +6,13 @@ on:
   pull_request:
     branches: [ "main" ]
   schedule:
-    # Run at 2:30 AM UTC every Monday
-    - cron: '30 2 * * 1'
+    - cron: '30 2 * * 1'   # Mondays at 2:30 AM UTC
 
 jobs:
   analyze:
     name: Analyze Code
     runs-on: ubuntu-latest
+
     permissions:
       actions: read
       contents: read
@@ -21,33 +21,32 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Add languages as they're introduced to the project
-        # Supported: 'cpp', 'csharp', 'go', 'java', 'javascript', 'python', 'ruby', 'swift'
         language: [ 'python' ]
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v6
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+
+    - name: Install dependencies
+      run: |
+        python -m venv venv
+        source venv/bin/activate
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v4
       with:
         languages: ${{ matrix.language }}
-        # Override default queries with custom queries if needed
-        # queries: security-extended,security-and-quality
 
-    # Autobuild attempts to build compiled languages
-    # For interpreted languages like Python, this step is not needed
-    - name: Autobuild
-      uses: github/codeql-action/autobuild@v4
-
-    # If autobuild fails, use manual build steps
-    # - name: Build manually
-    #   run: |
-    #     make bootstrap
-    #     make release
+    # Autobuild removed — Python doesn't need it and it misleads users
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v4
       with:
         category: "/language:${{ matrix.language }}"
+
