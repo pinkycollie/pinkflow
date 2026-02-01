@@ -1,0 +1,70 @@
+name: Auto-fix Code Issues
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+jobs:
+  auto-fix:
+    name: Auto-fix linting and formatting
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Install Python formatters
+        run: |
+          pip install black isort autopep8
+
+      - name: Run ESLint with auto-fix
+        run: |
+          npx eslint . --ext .js,.jsx,.ts,.tsx --fix || true
+
+      - name: Format Python code with black
+        run: |
+          black api/ --line-length 100 || true
+
+      - name: Sort Python imports with isort
+        run: |
+          isort api/ --profile black || true
+
+      - name: Update browserslist database
+        run: npx update-browserslist-db@latest || true
+
+      - name: Check for changes
+        id: git-check
+        run: |
+          git diff --exit-code || echo "changes=true" >> $GITHUB_OUTPUT
+
+      - name: Commit and push if changed
+        if: steps.git-check.outputs.changes == 'true'
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m "chore: auto-fix linting and formatting issues"
+          git push
