@@ -1,1 +1,429 @@
-visual workspace role-based ui
+# 🎯 PinkFlow CLI/IDE Overview
+
+A modern, simple command-line interface and integrated development environment for the PinkFlow Workflow System. Build, test, and deploy workflows with ease.
+
+## 📦 Installation
+
+```bash
+# Install PinkFlow CLI
+pip install pinkflow-cli
+
+# Verify installation
+pinkflow --version
+
+# Initialize a new project
+pinkflow init my-workflow-project
+cd my-workflow-project
+```
+
+## 🚀 Quick Start with CLI
+
+### Create a New Workflow
+
+```bash
+# Create a new workflow interactively
+pinkflow create workflow my-first-workflow
+
+# Or use a template
+pinkflow create workflow --template cicd my-cicd-pipeline
+```
+
+### Build and Validate
+
+```bash
+# Validate workflow syntax
+pinkflow validate my-workflow.py
+
+# Build workflow
+pinkflow build my-workflow.py
+
+# Dry run (simulate execution)
+pinkflow run my-workflow.py --dry-run
+```
+
+### Execute Workflows
+
+```bash
+# Execute in development environment
+pinkflow run my-workflow.py --env development
+
+# Execute with custom context
+pinkflow run my-workflow.py --context '{"user": "admin", "priority": "high"}'
+
+# Watch mode (auto-reload on changes)
+pinkflow run my-workflow.py --watch
+```
+
+## 💻 IDE Features
+
+### Visual Workflow Editor
+
+```bash
+# Launch visual editor
+pinkflow editor
+
+# Open specific workflow
+pinkflow editor my-workflow.py
+```
+
+The visual editor provides:
+
+- 🎨 Drag-and-drop node creation
+- 🔗 Visual connection builder
+- 📊 Real-time execution visualization
+- 🐛 Interactive debugging
+- 📝 IntelliSense and code completion
+
+### Interactive Shell
+
+```bash
+# Start interactive shell
+pinkflow shell
+
+# In the shell:
+>>> workflow = load_workflow('my-workflow.py')
+>>> workflow.validate()
+>>> result = workflow.execute()
+>>> print(result)
+```
+
+## 🛠️ CLI Commands Reference
+
+### Project Management
+
+```bash
+# Initialize new project
+pinkflow init [project-name] [--template TEMPLATE]
+
+# List all workflows in project
+pinkflow list
+
+# Show workflow details
+pinkflow info my-workflow.py
+
+# Generate documentation
+pinkflow docs --output ./docs
+```
+
+### Workflow Operations
+
+```bash
+# Create new workflow
+pinkflow create workflow NAME [--template TEMPLATE]
+
+# Validate workflow
+pinkflow validate WORKFLOW [--strict]
+
+# Test workflow
+pinkflow test WORKFLOW [--coverage]
+
+# Execute workflow
+pinkflow run WORKFLOW [--env ENV] [--context JSON]
+
+# Export workflow
+pinkflow export WORKFLOW --format [json|yaml|graphviz]
+```
+
+### Environment Management
+
+```bash
+# List environments
+pinkflow env list
+
+# Create environment
+pinkflow env create NAME --config CONFIG_FILE
+
+# Switch environment
+pinkflow env use NAME
+
+# Show current environment
+pinkflow env current
+```
+
+### Monitoring & Debugging
+
+```bash
+# Show execution history
+pinkflow history [WORKFLOW_ID]
+
+# Get execution statistics
+pinkflow stats [--workflow WORKFLOW_ID]
+
+# Debug workflow
+pinkflow debug WORKFLOW [--breakpoint NODE_ID]
+
+# Watch logs
+pinkflow logs [--follow] [--workflow WORKFLOW_ID]
+```
+
+## 🎨 IDE Configuration
+
+### Create .pinkflow.yaml
+
+```yaml
+project:
+  name: my-workflow-project
+  version: 1.0.0
+
+editor:
+  theme: dark
+  auto_save: true
+  show_minimap: true
+
+execution:
+  default_env: development
+  max_iterations: 1000
+  timeout: 300
+
+environments:
+  development:
+    auto_rollback: true
+    max_iterations: 100
+  staging:
+    auto_rollback: true
+    max_iterations: 500
+  production:
+    auto_rollback: false
+    max_iterations: 2000
+
+integrations:
+  deafauth:
+    enabled: true
+    endpoint: https://auth.pinkflow.io
+  pinksync:
+    enabled: true
+    websocket: wss://sync.pinkflow.io
+```
+
+## 🔌 IDE Extensions
+
+### Install Extensions
+
+```bash
+# List available extensions
+pinkflow extensions list
+
+# Install extension
+pinkflow extensions install git-integration
+pinkflow extensions install ai-autocomplete
+pinkflow extensions install workflow-linter
+
+# Enable extension
+pinkflow extensions enable git-integration
+```
+
+### Available Extensions
+
+- **git-integration**: Version control integration
+- **ai-autocomplete**: AI-powered code completion
+- **workflow-linter**: Advanced workflow validation
+- **visual-debugger**: Step-through debugging
+- **performance-profiler**: Execution profiling
+- **slack-notifier**: Workflow notifications
+
+## 🎓 Workflow Templates
+
+### Built-in Templates
+
+```bash
+# List available templates
+pinkflow templates list
+
+# Use a template
+pinkflow create workflow my-etl --template etl
+pinkflow create workflow my-api --template api-pipeline
+pinkflow create workflow my-deploy --template deployment
+```
+
+### Template Categories
+
+- **cicd**: CI/CD pipeline with testing and deployment
+- **etl**: Extract, Transform, Load data pipeline
+- **api-pipeline**: API request orchestration
+- **deployment**: Multi-environment deployment
+- **data-processing**: Batch data processing
+- **approval**: Multi-stage approval workflow
+- **monitoring**: Health check and alerting
+
+## 🔍 Example: Complete Workflow Development
+
+### Step 1: Create Project
+
+```bash
+# Initialize project
+pinkflow init my-deployment-system
+cd my-deployment-system
+
+# Create workflow from template
+pinkflow create workflow deploy --template deployment
+```
+
+### Step 2: Edit in IDE
+
+```bash
+# Open in visual editor
+pinkflow editor deploy.py
+```
+
+### Step 3: Validate and Test
+
+```bash
+# Validate syntax
+pinkflow validate deploy.py
+
+# Run tests
+pinkflow test deploy.py --coverage
+
+# Dry run
+pinkflow run deploy.py --dry-run --env staging
+```
+
+### Step 4: Execute
+
+```bash
+# Execute in staging
+pinkflow run deploy.py --env staging
+
+# Monitor execution
+pinkflow logs --follow --workflow deploy
+
+# Check results
+pinkflow history deploy
+```
+
+## 🚀 Advanced IDE Features
+
+### Hot Reload
+
+```bash
+# Enable hot reload during development
+pinkflow run my-workflow.py --watch --reload
+```
+
+### Multi-Workflow Execution
+
+```bash
+# Execute multiple workflows
+pinkflow run workflow1.py workflow2.py workflow3.py --parallel
+
+# Chain workflows
+pinkflow chain workflow1.py workflow2.py workflow3.py
+```
+
+### Workflow Composition
+
+```python
+# In IDE, compose workflows
+from pinkflow.cli import WorkflowComposer
+
+composer = WorkflowComposer()
+composed = composer.compose([
+    'data-ingestion.py',
+    'data-processing.py',
+    'data-export.py'
+])
+
+composed.execute()
+```
+
+## 📊 Performance Monitoring
+
+### Real-time Dashboard
+
+```bash
+# Launch performance dashboard
+pinkflow dashboard
+
+# Monitor specific workflow
+pinkflow dashboard --workflow deploy
+```
+
+### Generate Reports
+
+```bash
+# Generate execution report
+pinkflow report --workflow deploy --format html
+
+# Export metrics
+pinkflow metrics export --format csv --output metrics.csv
+```
+
+## 🔐 Security Features
+
+### Workflow Signing
+
+```bash
+# Sign workflow
+pinkflow sign my-workflow.py --key ~/.pinkflow/key.pem
+
+# Verify signature
+pinkflow verify my-workflow.py
+```
+
+### Secret Management
+
+```bash
+# Add secret
+pinkflow secrets add API_KEY --value "secret-value"
+
+# List secrets
+pinkflow secrets list
+
+# Use in workflow
+pinkflow run my-workflow.py --secrets-from-vault
+```
+
+## 🌐 Remote Execution
+
+### Deploy to Remote Environment
+
+```bash
+# Configure remote
+pinkflow remote add production https://prod.pinkflow.io
+
+# Deploy workflow
+pinkflow deploy my-workflow.py --remote production
+
+# Execute remotely
+pinkflow remote exec production my-workflow.py
+```
+
+## 🎯 Best Practices
+
+- **Use version control**: Always commit workflows to git
+- **Test thoroughly**: Run tests before deploying to production
+- **Use templates**: Start with proven templates for common patterns
+- **Monitor executions**: Set up dashboards for production workflows
+- **Document workflows**: Use inline comments and generate docs
+- **Leverage extensions**: Install extensions for enhanced productivity
+- **Use hot reload**: Enable watch mode during development
+- **Secure secrets**: Never hardcode credentials in workflows
+
+## 📞 CLI Help
+
+```bash
+# Get help for any command
+pinkflow --help
+pinkflow run --help
+pinkflow create --help
+
+# Show version and system info
+pinkflow version --verbose
+
+# Check for updates
+pinkflow update check
+pinkflow update install
+```
+
+## 🎉 Getting Started Checklist
+
+- [ ]  Install PinkFlow CLI: `pip install pinkflow-cli`
+- [ ]  Initialize project: `pinkflow init my-project`
+- [ ]  Create first workflow: `pinkflow create workflow hello`
+- [ ]  Open in IDE: `pinkflow editor hello.py`
+- [ ]  Validate workflow: `pinkflow validate hello.py`
+- [ ]  Run workflow: `pinkflow run hello.py`
+- [ ]  Check execution history: `pinkflow history`
+- [ ]  Explore templates: `pinkflow templates list`
+- [ ]  Install extensions: `pinkflow extensions install ai-autocomplete`
+- [ ]  Launch dashboard: `pinkflow dashboard`
