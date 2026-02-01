@@ -113,7 +113,7 @@ export const consoleLogger: Logger = {
 /** ---------- PinkFlow Client ---------- */
 
 export interface PinkFlowClientOptions {
-  baseUrl: string; // e.g. https://api.pinkflow.io
+  baseUrl: string; // e.g. https://api.mbtq.dev/pinkflow/v1
   tenantId: string;
   env: PinkFlowEnv;
   consentVersion: string;
