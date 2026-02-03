@@ -67,7 +67,7 @@ jobs:
           args: --no-deps --all-features
 
       - name: Archive Documentation
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: core-api-docs
           path: create-mbtq-template/packages/core/target/doc
@@ -109,7 +109,7 @@ jobs:
           echo "GATEWAY_TARGET=PinkSync-v2" >> readiness.env
       
       - name: Upload Readiness Signal
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: gateway-readiness-signal
           path: readiness.env
