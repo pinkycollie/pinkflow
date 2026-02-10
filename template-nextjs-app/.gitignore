@@ -1,0 +1,30 @@
+# Node / Next.js
+node_modules
+.next
+.next-static
+out
+.env
+.env.local
+.env.production
+.env.*.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-store
+
+# OS / Editor
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# Coverage and cache
+coverage
+.cache
+.vercel
+
+# Build artifacts
+*.log
+*.tgz
