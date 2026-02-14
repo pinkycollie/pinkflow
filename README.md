@@ -1,8 +1,19 @@
 # PinkFlow – Deaf-First Innovation Ecosystem
 
-[![CI/CD Pipeline](https://github.com/pinkycollie/PinkFlow/actions/workflows/basic.yml/badge.svg)](https://github.com/pinkycollie/PinkFlow/actions/workflows/basic.yml)
-[![CodeQL](https://github.com/pinkycollie/PinkFlow/actions/workflows/codeql.yml/badge.svg)](https://github.com/pinkycollie/PinkFlow/actions/workflows/codeql.yml)
-[![License](https://img.shields.io/badge/license-TBD-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/License-PolyForm_Noncommercial-blue.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-0.1.0-orange)](VERSION)
+[![Status](https://img.shields.io/badge/Status-Experimental-yellow)](MILESTONES.md)
+
+[![React](https://img.shields.io/badge/React-18+-61DAFB?logo=react&logoColor=white)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5+-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Python](https://img.shields.io/badge/Python-3.8+-3776AB?logo=python&logoColor=white)](https://python.org/)
+
+[![Accessibility](https://img.shields.io/badge/Accessibility-WCAG_2.1_AA-blue?logo=accessibility)](https://www.w3.org/WAI/WCAG21/quickref/)
+[![Deaf-First](https://img.shields.io/badge/Design-Deaf--First-purple)](https://github.com/pinkycollie/pinkflow)
+[![ASL Support](https://img.shields.io/badge/ASL-Supported-green)](https://github.com/pinkycollie/pinkflow)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![Live Demo](https://img.shields.io/badge/Demo-Live-success)](https://pinkycollie.github.io/pinkflow/)
 
 ### 🚀 Status: Auto-Deploy System Complete ✅
 
@@ -20,10 +31,13 @@ PinkFlow (part of MBTQ.dev) is a **Deaf-First ecosystem** built to empower entre
 - [Use Cases](#-use-cases)
 - [Architecture](#-architecture)
 - [Development](#-development)
+- [Releases & Milestones](#-releases--milestones)
 - [Contributing](#-contributing)
 - [Security](#-security)
 - [Community](#-community)
 - [License](#-license)
+
+📚 **[Complete Documentation Index](DOCS_INDEX.md)** - Find all documentation in one place
 
 ---
 
@@ -58,8 +72,34 @@ PinkFlow is a process-orchestration layer for partners and collaborators who don
 - **Workspace Management**: File tree navigation and editing capabilities
 - **Governance System**: Proposal voting and contribution tracking
 
+### 🌸 Web Application (`webapp/`)
+
+A complete Deaf-First accessibility toolkit with:
+
+- **Model Testing**: Test sign language AI models from GitHub repos against real accessibility standards
+- **Smart Captions**: Generate high-quality captions for video content
+- **Audio Transcription**: Convert audio to text with speaker detection
+- **Visual Alerts**: Convert audio alerts to visual notifications (Beta)
+- **Sign Recognition**: Real-time ASL to text translation (Beta)
+- **FastAPI Backend**: REST API for all accessibility tools
+- **React Frontend**: Mobile-responsive, Deaf-First design with Tailwind CSS
+
+See [webapp/README.md](webapp/README.md) for setup instructions.
+
 ### Planned Features
 
+- **Sign Language Feedback System**: Upload and manage sign language video feedback
+  - Video upload support (.mp4, .mov, .webm)
+  - Cloud storage integration (AWS S3, Firebase)
+  - Real-time admin notifications
+  - Deaf-First accessibility design
+  - See [SIGN_LANGUAGE_FEEDBACK.md](SIGN_LANGUAGE_FEEDBACK.md) for details
+- **Voting and Broadcasting System**: Real-time voting and notifications (✅ **IMPLEMENTED**)
+  - Privacy-protected voting on test results and feedback
+  - FibonRose trust metrics based on voting history
+  - PubSub broadcasting for test container updates
+  - Visual notification banners with IoT/Vibration API support
+  - See [VOTING_BROADCASTING_SYSTEM.md](VOTING_BROADCASTING_SYSTEM.md) for details
 - **Live Backend Integration**: FastAPI services for authentication, workspace, and governance
 - **Real-time Sync**: PinkSync WebSocket service for multi-user collaboration
 - **AI Proxy**: Secure backend proxy for AI API calls
@@ -70,6 +110,19 @@ PinkFlow is a process-orchestration layer for partners and collaborators who don
 ---
 
 ## 🚀 Getting Started
+
+### 🆕 New to PinkFlow?
+
+**Start here!** Our comprehensive onboarding guide will walk you through everything:
+
+📘 **[Onboarding Guide](ONBOARDING.md)** - Complete step-by-step guide for new contributors
+
+🎯 **[Try the Live Demo](https://pinkycollie.github.io/pinkflow/)** - Test any GitHub sign language model instantly!
+
+Quick links:
+- 🌿 [Branch Naming Conventions](BRANCH_NAMING.md)
+- 🏷️ [Labels Guide](LABELS.md)
+- 🤝 [Contributing Guidelines](CONTRIBUTING.md)
 
 ### Prerequisites
 
@@ -160,41 +213,84 @@ REACT_APP_WS_URL=ws://localhost:3001
 
 ## 🏗️ Architecture
 
-* **MBTQ.dev Frontend (Pinkflow UI)**
+PinkFlow uses a layered architecture with clear separation between content, platform, and analytics:
 
-  * React + TypeScript SPA
-  * Role-based UI (Developer, Researcher, Contributor)
-  * Component-driven architecture
-  * Mocked backend services (ready for API swap-in)
-  * Gemini API integration (to be proxied securely via backend)
+### **Next.js Marketing Site** (`marketing-site/`)
 
-* **MBTQ FastAPI Backend (Scaffolded)**
+The public-facing **content engine** built with Next.js standalone output:
 
-  * Modular services:
+* **Marketing Hub** - Features, updates, and showcasing PinkFlow
+* **Documentation** - Comprehensive guides and API references  
+* **SEO Pages** - Optimized for search visibility and lead generation
+* **Public Agency Profiles** - Accessibility scorecards and compliance reports
+* **Blog** - Updates, insights, and community stories
+* **Case Studies** - Real-world success stories and metrics
+* **Landing Pages** - Lead capture and conversion funnels
 
-    * **DeafAuth** (Identity & Authentication)
-    * **PinkSync** (Real-time sync & notifications)
-    * **FibonRose** (Trust & Ethics Engine)
-    * **360Magicians** (AI Business Agents)
-  * SQLAlchemy models for unified schema
-  * API routers & placeholder services
-  * JSON schema contract (`build.json`)
+**Technology**: Next.js 16+ with standalone output, Tailwind CSS, TypeScript  
+**Purpose**: Attract visitors through SEO and content marketing
 
-* **PinkSync Node.js Service**
+### **MBTQ.dev Platform (Pinkflow UI)** (`webapp/`)
 
-  * WebSocket backbone for real-time collaboration
-  * Powers PinkFlow multi-user workspace
+The interactive platform runtime:
 
-* **MagicianCore Agents**
+* React + TypeScript SPA (Vite)
+* Role-based UI (Developer, Researcher, Contributor)
+* Component-driven architecture
+* Mocked backend services (ready for API swap-in)
+* Gemini API integration (to be proxied securely via backend)
 
-  * AI-driven service agents handling lifecycle: Idea → Build → Grow → Managed
-  * Connected to `business-magician-api`
+**Technology**: React 18+, Vite, TypeScript  
+**Purpose**: Convert visitors to users with interactive tools
+
+### **MBTQ FastAPI Backend** (Scaffolded)
+
+Modular services powering the platform:
+
+* **DeafAuth** (Identity & Authentication)
+* **PinkSync** (Real-time sync & notifications)
+* **FibonRose** (Trust & Ethics Engine)
+* **360Magicians** (AI Business Agents) - [See Agents Documentation](context/agents.md)
+* SQLAlchemy models for unified schema
+* API routers & placeholder services
+* JSON schema contract (`build.json`)
+
+### **PinkSync Node.js Service**
+
+* WebSocket backbone for real-time collaboration
+* Powers PinkFlow multi-user workspace
+
+### **MagicianCore Agents**
+
+* AI-driven service agents handling lifecycle: Idea → Build → Grow → Managed
+* Connected to `business-magician-api`
+
+### Architecture Flow
+
+```
+Next.js Marketing → Attracts visitors through SEO and content
+         ↓
+Platform (Fresh/React) → Converts visitors to users
+         ↓
+PinkFlow Analytics → Analyzes repos and generates insights
+         ↓
+Content Engine → Publishes insights back for SEO
+```
+
+This creates a **self-reinforcing content flywheel** where analytics feed content that attracts more users.
 
 ### Technology Stack
 
-**Frontend**:
+**Marketing/Content Layer**:
+- Next.js 16+ (standalone output)
+- Tailwind CSS
+- TypeScript
+- Static generation + SSR
+
+**Platform Frontend**:
 - React 18+
 - TypeScript
+- Vite
 - Modern hooks-based architecture
 
 **Backend**:
@@ -209,88 +305,7 @@ REACT_APP_WS_URL=ws://localhost:3001
 **Infrastructure**:
 - Google Cloud Platform
 - Cloud Run for services
-- Vercel for frontend and auto-deployed apps
-- GitHub for version control and CI/CD
-
----
-
-## 🚀 Auto-Deploy System
-
-### Overview
-
-PinkFlow includes a complete auto-deploy system that automatically provisions and deploys React applications when customers make purchases through Stripe.
-
-### How It Works
-
-```
-Customer Purchase → Stripe Webhook → GitHub Repo Creation → Vercel Deployment → Live App
-```
-
-1. **Customer purchases** a plan through Stripe Checkout
-2. **Stripe sends webhook** to PinkFlow with plan details
-3. **GitHub repository created** from template, private and configured
-4. **Vercel project created** and deployed automatically
-5. **Customer receives** repository access and live app URL
-
-### Key Features
-
-- ✅ **Stripe Integration**: Webhook handling with signature verification
-- ✅ **GitHub Provisioning**: Automated repository creation from templates
-- ✅ **Vercel Deployment**: Automatic project setup and deployment
-- ✅ **CI/CD Pipelines**: Complete GitHub Actions workflows
-- ✅ **Security First**: All workflows have minimal permissions, 0 vulnerabilities
-- ✅ **Comprehensive Documentation**: 2,100+ lines of setup guides and references
-
-### Documentation
-
-- **[AUTODEPLOY.md](AUTODEPLOY.md)** - Complete setup guide and architecture
-- **[INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md)** - Step-by-step integration instructions
-- **[SECRETS_REFERENCE.md](SECRETS_REFERENCE.md)** - Environment variables and security
-- **[AUTODEPLOY_CHECKLIST.md](AUTODEPLOY_CHECKLIST.md)** - Implementation checklist (100+ items)
-- **[ARCHITECTURE.md](ARCHITECTURE.md)** - Visual architecture diagrams
-- **[IMPLEMENTATION_DETAILS.md](IMPLEMENTATION_DETAILS.md)** - Technical implementation details
-
-### Quick Start
-
-1. **Configure Environment Variables**
-   ```bash
-   cp .env.example .env.local
-   # Fill in Stripe, GitHub, and Vercel credentials
-   ```
-
-2. **Install Dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Test Locally**
-   ```bash
-   npm run dev
-   # Use Stripe CLI to forward webhooks
-   ```
-
-4. **Deploy to Production**
-   ```bash
-   npm run build
-   vercel --prod
-   ```
-
-### Template Repository
-
-The `template-nextjs-app/` directory contains a complete Next.js application template that is used for provisioning new repositories. It includes:
-
-- Next.js 14 with TypeScript
-- GitHub Actions workflows
-- Vercel deployment configuration
-- Security best practices
-- Accessibility features
-
-### Security
-
-✅ **CodeQL Scan**: 0 vulnerabilities  
-✅ **All workflows**: Minimal explicit permissions  
-✅ **Stripe webhooks**: Signature verification  
-✅ **Secrets**: Best practices documented, none in code
+- Next.js standalone for marketing
 
 ---
 
@@ -317,6 +332,11 @@ PinkFlow/
 ├── CONTRIBUTING.md      # Contribution guidelines
 ├── CODE_OF_CONDUCT.md   # Community standards
 ├── SECURITY.md          # Security policy
+├── CHANGELOG.md         # Version history
+├── MILESTONES.md        # Project roadmap and milestones
+├── ANNOUNCEMENTS.md     # Official announcements
+├── RELEASE.md           # Release process guide
+├── VERSION              # Current version number
 └── .gitignore           # Git ignore rules
 ```
 
@@ -375,11 +395,50 @@ npm run test:e2e
 
 ---
 
+## 📦 Releases & Milestones
+
+### Current Version
+
+**Version**: 0.1.0 (Foundation Release)  
+**Status**: Experimental  
+**Release Date**: December 2025
+
+See the [VERSION](VERSION) file for the current version number.
+
+### Key Resources
+
+- **[MILESTONES.md](MILESTONES.md)**: Project roadmap and milestone tracking
+- **[ANNOUNCEMENTS.md](ANNOUNCEMENTS.md)**: Official project announcements
+- **[RELEASE.md](RELEASE.md)**: Release process and versioning guide
+- **[CHANGELOG.md](CHANGELOG.md)**: Detailed version history
+
+### Roadmap Overview
+
+| Milestone | Version | Target | Status |
+|-----------|---------|--------|--------|
+| Foundation | v0.1.0 | Q4 2025 | ✅ Complete |
+| Backend Integration | v0.2.0 | Q1 2026 | 🔄 In Progress |
+| Real-time Features | v0.3.0 | Q2 2026 | 📋 Planned |
+| AI Integration | v0.4.0 | Q3 2026 | 📋 Planned |
+| Production Release | v1.0.0 | Q4 2026 | 📋 Planned |
+
+### Readiness Status
+
+✅ **Internal Ready**: Development infrastructure established  
+✅ **External Ready**: Community contribution pathways open  
+⏳ **Production Ready**: Planned for v1.0.0
+
+See [RELEASE.md](RELEASE.md) for detailed readiness criteria.
+
+---
+
 ## 🤝 Contributing
 
 We welcome contributions from everyone! Here's how you can help:
 
 ### Ways to Contribute
+
+**New here?** See our [Onboarding Guide](ONBOARDING.md) for detailed instructions!
 
 - **Report bugs**: Use the [bug report template](.github/ISSUE_TEMPLATE/bug_report.md)
 - **Suggest features**: Use the [feature request template](.github/ISSUE_TEMPLATE/feature_request.md)
@@ -392,10 +451,11 @@ We welcome contributions from everyone! Here's how you can help:
 
 1. Read the [Code of Conduct](CODE_OF_CONDUCT.md)
 2. Read the [Contributing Guidelines](CONTRIBUTING.md)
-3. Find an issue to work on or create a new one
-4. Fork the repository and create a branch
-5. Make your changes following our standards
-6. Submit a pull request
+3. **New contributors**: Check out the [Onboarding Guide](ONBOARDING.md)
+4. Find an issue to work on or create a new one
+5. Fork the repository and create a branch (see [Branch Naming](BRANCH_NAMING.md))
+6. Make your changes following our standards
+7. Submit a pull request
 
 ### Recognition
 
@@ -495,13 +555,46 @@ Next step: Replace mocked data with live API calls.
 
 ## 📌 Deployment Notes
 
-* **Frontend**: Deployable on Vercel or Cloud Run (current: Vercel staging, may migrate fully to GCP).
-* **Backend**: FastAPI services structured for Cloud Run + Cloud SQL.
-* **Real-time (PinkSync)**: Node.js service deployable on Cloud Run with WebSocket support.
-* **Environment variables**: Required for Gemini API, Auth secrets, DB URLs.
+### **Marketing Site** (`marketing-site/`)
+
+* **Technology**: Next.js standalone output
+* **Deployment Options**:
+  - Docker container (recommended)
+  - Node.js hosting (Railway, Render, Fly.io)
+  - Google Cloud Run
+  - Any platform supporting Node.js
+* **Build**: `npm run build` creates `.next/standalone/` with self-contained server
+* **Run**: `node server.js` (no node_modules needed in production)
+* **Purpose**: SEO, content marketing, lead generation
+
+See [marketing-site/README.md](marketing-site/README.md) for detailed deployment instructions.
+
+### **Platform Frontend** (`webapp/frontend/`)
+
+* **Technology**: React + Vite SPA
+* **Deployment Options**:
+  - Static hosting (GitHub Pages, Netlify, Vercel)
+  - Cloud Run (containerized)
+  - CDN + object storage
+* **Build**: `npm run build` creates optimized static assets
+* **Purpose**: Interactive platform for authenticated users
+
+### **Backend Services**
+
+* FastAPI services structured for Cloud Run + Cloud SQL
+* Real-time (PinkSync): Node.js service deployable on Cloud Run with WebSocket support
+* Environment variables: Required for Gemini API, Auth secrets, DB URLs
 
 ### Deployment Checklist
 
+**Marketing Site**:
+- [ ] Build Next.js standalone output
+- [ ] Configure environment variables
+- [ ] Deploy to Cloud Run or container platform
+- [ ] Configure domain and SSL
+- [ ] Set up CDN (optional)
+
+**Platform**:
 - [ ] Configure environment variables
 - [ ] Set up database (Cloud SQL)
 - [ ] Configure secrets in Google Cloud

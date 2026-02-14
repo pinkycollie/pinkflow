@@ -61,6 +61,8 @@ pnpm-debug.log*
 coverage/
 .nyc_output/
 .pytest_cache/
+__pycache__/
+*.pyc
 .coverage
 htmlcov/
 *.cover
@@ -97,3 +99,7 @@ config.local.*
 .vercel
 .firebase
 .gcloud
+
+# Context Builder artifacts
+.faiss_index.index
+.context_docs.json

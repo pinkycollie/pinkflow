@@ -1,0 +1,900 @@
+# ============================================
+
+# FILE STRUCTURE:
+
+# ============================================
+
+# /pinkflow-api/
+
+# ├── app/
+
+# │   ├── main.py
+
+# │   ├── models.py
+
+# │   ├── routers/
+
+# │   │   ├── models.py
+
+# │   │   ├── testing.py
+
+# │   │   ├── results.py
+
+# │   │   ├── deployment.py
+
+# │   │   └── webhooks.py
+
+# │   ├── middleware/
+
+# │   │   ├── deafauth.py
+
+# │   │   └── fibronrose.py
+
+# │   ├── services/
+
+# │   │   ├── firebase.py
+
+# │   │   ├── test_runner.py
+
+# │   │   └── pinksync.py
+
+# │   └── config.py
+
+# ├── nginx/
+
+# │   └── nginx.conf
+
+# ├── docker-compose.yml
+
+# ├── Dockerfile
+
+# └── requirements.txt
+
+# ============================================
+
+# requirements.txt
+
+# ============================================
+
+“””
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+pydantic==2.5.3
+python-jose[cryptography]==3.3.0
+python-multipart==0.0.6
+firebase-admin==6.4.0
+httpx==0.26.0
+redis==5.0.1
+celery==5.3.4
+docker==7.0.0
+“””
+
+# ============================================
+
+# app/config.py
+
+# ============================================
+
+from pydantic_settings import BaseSettings
+
+class Settings(BaseSettings):
+# API
+API_VERSION: str = “v1”
+API_PREFIX: str = “/pinkflow/v1”
+
+```
+# Firebase
+FIREBASE_CREDENTIALS_PATH: str = "/secrets/firebase-credentials.json"
+FIREBASE_PROJECT_ID: str
+
+# DeafAUTH
+DEAFAUTH_PUBLIC_KEY: str
+DEAFAUTH_VERIFY_URL: str = "https://auth.mbtq.dev/validate"
+
+# Fibronrose
+FIBRONROSE_API_KEY: str
+FIBRONROSE_URL: str = "https://api.mbtq.dev/fibronrose"
+
+# PinkSync
+PINKSYNC_API_KEY: str
+PINKSYNC_URL: str = "https://api.mbtq.dev/pinksync"
+
+# Redis
+REDIS_URL: str = "redis://redis:6379"
+
+# Testing
+TEST_DOCKER_SOCKET: str = "/var/run/docker.sock"
+TEST_GPU_ENABLED: bool = True
+
+class Config:
+    env_file = ".env"
+```
+
+settings = Settings()
+
+# ============================================
+
+# app/models.py - Pydantic Models
+
+# ============================================
+
+from pydantic import BaseModel, HttpUrl, Field
+from typing import Optional, Literal
+from datetime import datetime
+from enum import Enum
+
+class TaskType(str, Enum):
+SLR = “SLR”
+SLT = “SLT”
+SLP = “SLP”
+POSE = “Pose”
+
+class ModelStatus(str, Enum):
+QUEUED = “queued”
+TESTING = “testing”
+TESTED = “tested”
+FAILED = “failed”
+
+class TestStatus(str, Enum):
+QUEUED = “queued”
+RUNNING = “running”
+COMPLETED = “completed”
+FAILED = “failed”
+
+class ModelCreate(BaseModel):
+name: str
+task: TaskType
+repo: HttpUrl
+paper: Optional[HttpUrl] = None
+dataset: Optional[str] = None
+pretrained_weights: Optional[HttpUrl] = None
+priority: Literal[“low”, “normal”, “high”] = “normal”
+
+class ModelResponse(BaseModel):
+id: str
+name: str
+task: TaskType
+repo: HttpUrl
+paper: Optional[HttpUrl] = None
+status: ModelStatus
+accuracy: Optional[float] = None
+fps: Optional[float] = None
+deaf_score: Optional[float] = None
+created_at: datetime
+tested_at: Optional[datetime] = None
+
+class TestStart(BaseModel):
+model_id: str
+dataset: Literal[“WLASL”, “PHOENIX”, “CSL”, “MBTQ-Custom”] = “WLASL”
+compute_type: Literal[“cpu”, “cuda”, “rocm”] = “cuda”
+max_duration: int = 3600
+
+class TestStatusResponse(BaseModel):
+test_id: str
+model_id: str
+status: TestStatus
+progress: float = Field(ge=0, le=100)
+current_stage: Literal[“setup”, “inference”, “evaluation”, “logging”]
+logs: list[dict]
+
+class DeploymentRequest(BaseModel):
+model_id: str
+endpoint: str
+region: Literal[“us-east”, “us-west”, “eu”, “asia”] = “us-east”
+auto_scale: bool = True
+max_instances: int = 3
+
+# ============================================
+
+# app/middleware/deafauth.py
+
+# ============================================
+
+from fastapi import HTTPException, Security, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from jose import JWTError, jwt
+import httpx
+from app.config import settings
+
+security = HTTPBearer()
+
+async def verify_deafauth_token(
+credentials: HTTPAuthorizationCredentials = Security(security)
+) -> dict:
+“”“Verify DeafAUTH JWT token”””
+token = credentials.credentials
+
+```
+try:
+    # Decode JWT
+    payload = jwt.decode(
+        token,
+        settings.DEAFAUTH_PUBLIC_KEY,
+        algorithms=["RS256"]
+    )
+    
+    # Validate with DeafAUTH service
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            settings.DEAFAUTH_VERIFY_URL,
+            json={"token": token},
+            timeout=5.0
+        )
+        
+        if response.status_code != 200:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token validation failed"
+            )
+    
+    return payload
+    
+except JWTError:
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Invalid authentication token"
+    )
+```
+
+# ============================================
+
+# app/middleware/fibronrose.py
+
+# ============================================
+
+import httpx
+from datetime import datetime
+from app.config import settings
+
+async def log_to_fibronrose(event: str, data: dict) -> dict:
+“”“Log event to Fibronrose for trust validation”””
+try:
+async with httpx.AsyncClient() as client:
+response = await client.post(
+f”{settings.FIBRONROSE_URL}/log”,
+json={
+“event”: event,
+“data”: data,
+“timestamp”: datetime.utcnow().isoformat(),
+“source”: “pinkflow”
+},
+headers={
+“Authorization”: f”Bearer {settings.FIBRONROSE_API_KEY}”
+},
+timeout=10.0
+)
+return response.json()
+except Exception as e:
+print(f”Fibronrose logging failed: {e}”)
+return {}
+
+async def calculate_trust_score(model_id: str, test_results: dict) -> dict:
+“”“Calculate and log trust score to Fibronrose”””
+base_score = (
+test_results.get(“accuracy”, 0) * 0.4 +
+test_results.get(“deaf_score”, 0) * 0.6
+)
+
+```
+blockchain_result = await log_to_fibronrose("trust_score", {
+    "model_id": model_id,
+    "score": base_score,
+    "metrics": test_results
+})
+
+return {
+    "trust_score": base_score,
+    "blockchain_hash": blockchain_result.get("hash"),
+    "reputation_impact": "positive" if base_score >= 90 else "neutral" if base_score >= 70 else "negative"
+}
+```
+
+# ============================================
+
+# app/services/firebase.py
+
+# ============================================
+
+import firebase_admin
+from firebase_admin import credentials, firestore
+from app.config import settings
+
+# Initialize Firebase
+
+cred = credentials.Certificate(settings.FIREBASE_CREDENTIALS_PATH)
+firebase_admin.initialize_app(cred)
+
+db = firestore.client()
+
+class FirebaseService:
+@staticmethod
+def get_models(filters: dict = None):
+query = db.collection(“models”)
+
+```
+    if filters:
+        if "status" in filters and filters["status"] != "all":
+            query = query.where("status", "==", filters["status"])
+        if "task" in filters:
+            query = query.where("task", "==", filters["task"])
+    
+    query = query.order_by("created_at", direction=firestore.Query.DESCENDING)
+    
+    return [{"id": doc.id, **doc.to_dict()} for doc in query.stream()]
+
+@staticmethod
+def add_model(model_data: dict) -> str:
+    doc_ref = db.collection("models").document()
+    doc_ref.set(model_data)
+    return doc_ref.id
+
+@staticmethod
+def get_model(model_id: str) -> dict:
+    doc = db.collection("models").document(model_id).get()
+    if doc.exists:
+        return {"id": doc.id, **doc.to_dict()}
+    return None
+
+@staticmethod
+def update_model(model_id: str, updates: dict):
+    db.collection("models").document(model_id).update(updates)
+
+@staticmethod
+def delete_model(model_id: str):
+    db.collection("models").document(model_id).delete()
+
+@staticmethod
+def create_test(test_data: dict) -> str:
+    doc_ref = db.collection("tests").document()
+    doc_ref.set(test_data)
+    return doc_ref.id
+
+@staticmethod
+def get_test(test_id: str) -> dict:
+    doc = db.collection("tests").document(test_id).get()
+    if doc.exists:
+        return {"id": doc.id, **doc.to_dict()}
+    return None
+
+@staticmethod
+def update_test(test_id: str, updates: dict):
+    db.collection("tests").document(test_id).update(updates)
+```
+
+firebase_service = FirebaseService()
+
+# ============================================
+
+# app/services/test_runner.py
+
+# ============================================
+
+import docker
+import asyncio
+from datetime import datetime
+from app.services.firebase import firebase_service
+from app.middleware.fibronrose import log_to_fibronrose
+from app.config import settings
+
+class TestRunner:
+def **init**(self):
+self.docker_client = docker.from_env()
+
+```
+async def start_test(self, model_id: str, options: dict) -> str:
+    """Start model testing pipeline"""
+    test_id = f"test_{int(datetime.utcnow().timestamp())}_{model_id[:8]}"
+    
+    # Create test record
+    test_data = {
+        "test_id": test_id,
+        "model_id": model_id,
+        "status": "queued",
+        "dataset": options.get("dataset", "WLASL"),
+        "compute_type": options.get("compute_type", "cuda"),
+        "progress": 0,
+        "current_stage": "setup",
+        "created_at": datetime.utcnow(),
+        "logs": []
+    }
+    
+    firebase_service.create_test(test_data)
+    
+    # Trigger async execution
+    asyncio.create_task(self._run_test(test_id, model_id, options))
+    
+    return test_id
+
+async def _run_test(self, test_id: str, model_id: str, options: dict):
+    """Execute test in Docker container"""
+    try:
+        # Update status
+        firebase_service.update_test(test_id, {
+            "status": "running",
+            "current_stage": "setup"
+        })
+        
+        # Get model info
+        model = firebase_service.get_model(model_id)
+        
+        # Run Docker container for testing
+        container = self.docker_client.containers.run(
+            "mbtq/pinkflow-tester:latest",
+            environment={
+                "MODEL_REPO": model["repo"],
+                "DATASET": options["dataset"],
+                "COMPUTE_TYPE": options["compute_type"]
+            },
+            device_requests=[
+                docker.types.DeviceRequest(count=-1, capabilities=[["gpu"]])
+            ] if settings.TEST_GPU_ENABLED else None,
+            detach=True,
+            remove=True
+        )
+        
+        # Monitor progress
+        for log in container.logs(stream=True):
+            # Parse log and update progress
+            firebase_service.update_test(test_id, {
+                "logs": firestore.ArrayUnion([{
+                    "timestamp": datetime.utcnow(),
+                    "message": log.decode("utf-8")
+                }])
+            })
+        
+        # Test completed - parse results
+        results = self._parse_test_results(container)
+        
+        # Update model with results
+        firebase_service.update_model(model_id, {
+            "status": "tested",
+            "accuracy": results["accuracy"],
+            "fps": results["fps"],
+            "deaf_score": results["deaf_score"],
+            "tested_at": datetime.utcnow()
+        })
+        
+        # Update test status
+        firebase_service.update_test(test_id, {
+            "status": "completed",
+            "progress": 100,
+            "results": results
+        })
+        
+        # Log to Fibronrose
+        await log_to_fibronrose("test_completed", {
+            "test_id": test_id,
+            "model_id": model_id,
+            "results": results
+        })
+        
+    except Exception as e:
+        firebase_service.update_test(test_id, {
+            "status": "failed",
+            "error": str(e)
+        })
+        
+        firebase_service.update_model(model_id, {
+            "status": "failed"
+        })
+
+def _parse_test_results(self, container) -> dict:
+    """Parse test results from container output"""
+    # This would parse actual test output
+    # For now, returning mock data
+    return {
+        "accuracy": 92.5,
+        "fps": 45.0,
+        "deaf_score": 95.0,
+        "precision": 91.2,
+        "recall": 93.8
+    }
+```
+
+test_runner = TestRunner()
+
+# ============================================
+
+# app/routers/models.py
+
+# ============================================
+
+from fastapi import APIRouter, Depends, HTTPException, Query
+from typing import Optional
+from app.models import ModelCreate, ModelResponse
+from app.services.firebase import firebase_service
+from app.middleware.deafauth import verify_deafauth_token
+from app.middleware.fibronrose import log_to_fibronrose
+from datetime import datetime
+
+router = APIRouter(prefix=”/models”, tags=[“models”])
+
+@router.get(””, response_model=dict)
+async def list_models(
+status: Optional[str] = Query(“all”),
+task: Optional[str] = Query(None),
+search: Optional[str] = Query(None),
+limit: int = Query(50),
+user: dict = Depends(verify_deafauth_token)
+):
+“”“List all models with filters”””
+filters = {}
+if status != “all”:
+filters[“status”] = status
+if task:
+filters[“task”] = task
+
+```
+models = firebase_service.get_models(filters)
+
+# Client-side search
+if search:
+    models = [m for m in models if search.lower() in m["name"].lower()]
+
+return {
+    "models": models[:limit],
+    "total": len(models),
+    "page": {
+        "limit": limit,
+        "offset": 0,
+        "has_next": len(models) > limit
+    }
+}
+```
+
+@router.post(””, response_model=ModelResponse, status_code=201)
+async def create_model(
+model: ModelCreate,
+user: dict = Depends(verify_deafauth_token)
+):
+“”“Add new model to testing queue”””
+model_data = {
+**model.dict(),
+“status”: “queued”,
+“accuracy”: None,
+“fps”: None,
+“deaf_score”: None,
+“created_at”: datetime.utcnow(),
+“tested_at”: None,
+“created_by”: user[“uid”]
+}
+
+```
+model_id = firebase_service.add_model(model_data)
+
+await log_to_fibronrose("model_added", {
+    "model_id": model_id,
+    "name": model.name,
+    "user": user["uid"]
+})
+
+return {"id": model_id, **model_data}
+```
+
+@router.get(”/{model_id}”, response_model=ModelResponse)
+async def get_model(
+model_id: str,
+user: dict = Depends(verify_deafauth_token)
+):
+“”“Get model details”””
+model = firebase_service.get_model(model_id)
+if not model:
+raise HTTPException(status_code=404, detail=“Model not found”)
+return model
+
+# ============================================
+
+# app/routers/testing.py
+
+# ============================================
+
+from fastapi import APIRouter, Depends
+from app.models import TestStart, TestStatusResponse
+from app.services.test_runner import test_runner
+from app.services.firebase import firebase_service
+from app.middleware.deafauth import verify_deafauth_token
+
+router = APIRouter(prefix=”/test”, tags=[“testing”])
+
+@router.post(”/start”, status_code=202)
+async def start_test(
+test: TestStart,
+user: dict = Depends(verify_deafauth_token)
+):
+“”“Start model testing”””
+test_id = await test_runner.start_test(
+test.model_id,
+{
+“dataset”: test.dataset,
+“compute_type”: test.compute_type,
+“max_duration”: test.max_duration
+}
+)
+
+```
+firebase_service.update_model(test.model_id, {"status": "testing"})
+
+return {
+    "test_id": test_id,
+    "model_id": test.model_id,
+    "status": "queued",
+    "started_at": datetime.utcnow()
+}
+```
+
+@router.get(”/{test_id}/status”, response_model=TestStatusResponse)
+async def get_test_status(
+test_id: str,
+user: dict = Depends(verify_deafauth_token)
+):
+“”“Get test execution status”””
+test = firebase_service.get_test(test_id)
+if not test:
+raise HTTPException(status_code=404, detail=“Test not found”)
+return test
+
+# ============================================
+
+# app/main.py - FastAPI Application
+
+# ============================================
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from app.config import settings
+from app.routers import models, testing
+
+app = FastAPI(
+title=“PinkFlow API”,
+description=“Sign Language Model Testing & Validation”,
+version=“1.0.0”
+)
+
+# CORS
+
+app.add_middleware(
+CORSMiddleware,
+allow_origins=[“https://pinkflow.mbtq.dev”, “https://mbtquniverse.com”],
+allow_credentials=True,
+allow_methods=[”*”],
+allow_headers=[”*”],
+)
+
+# Routers
+
+app.include_router(models.router, prefix=settings.API_PREFIX)
+app.include_router(testing.router, prefix=settings.API_PREFIX)
+
+@app.get(”/health”)
+async def health_check():
+return {“status”: “healthy”, “service”: “pinkflow”}
+
+@app.get(f”{settings.API_PREFIX}/stats”)
+async def get_stats():
+“”“Platform statistics”””
+models = firebase_service.get_models()
+tested = [m for m in models if m[“status”] == “tested”]
+
+```
+return {
+    "total_models": len(models),
+    "tested_models": len(tested),
+    "avg_accuracy": sum(m.get("accuracy", 0) for m in tested) / len(tested) if tested else 0,
+    "avg_deaf_score": sum(m.get("deaf_score", 0) for m in tested) / len(tested) if tested else 0
+}
+```
+
+# ============================================
+
+# nginx/nginx.conf
+
+# ============================================
+
+“””
+user nginx;
+worker_processes auto;
+error_log /var/log/nginx/error.log warn;
+pid /var/run/nginx.pid;
+
+events {
+worker_connections 1024;
+}
+
+http {
+include /etc/nginx/mime.types;
+default_type application/octet-stream;
+
+```
+log_format main '$remote_addr - $remote_user [$time_local] "$request" '
+                '$status $body_bytes_sent "$http_referer" '
+                '"$http_user_agent" "$http_x_forwarded_for"';
+
+access_log /var/log/nginx/access.log main;
+
+sendfile on;
+tcp_nopush on;
+tcp_nodelay on;
+keepalive_timeout 65;
+types_hash_max_size 2048;
+
+# Rate limiting
+limit_req_zone $binary_remote_addr zone=api_limit:10m rate=10r/s;
+limit_req_zone $binary_remote_addr zone=test_limit:10m rate=1r/m;
+
+# Gzip
+gzip on;
+gzip_vary on;
+gzip_min_length 1024;
+gzip_types text/plain text/css application/json application/javascript;
+
+# Upstream FastAPI
+upstream fastapi {
+    server fastapi:8000;
+}
+
+server {
+    listen 80;
+    server_name api.mbtq.dev;
+    
+    # Redirect to HTTPS
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name api.mbtq.dev;
+
+    # SSL certificates (Let's Encrypt)
+    ssl_certificate /etc/letsencrypt/live/api.mbtq.dev/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/api.mbtq.dev/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+
+    # Security headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Strict-Transport-Security "max-age=31536000" always;
+
+    # API routes
+    location /pinkflow/v1/ {
+        limit_req zone=api_limit burst=20 nodelay;
+        
+        proxy_pass http://fastapi;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # Timeouts
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+    }
+
+    # Test endpoints (stricter rate limit)
+    location /pinkflow/v1/test/ {
+        limit_req zone=test_limit burst=2 nodelay;
+        
+        proxy_pass http://fastapi;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # Longer timeout for tests
+        proxy_read_timeout 3600s;
+    }
+
+    # Health check
+    location /health {
+        proxy_pass http://fastapi;
+        access_log off;
+    }
+}
+```
+
+}
+“””
+
+# ============================================
+
+# docker-compose.yml
+
+# ============================================
+
+“””
+version: ‘3.8’
+
+services:
+nginx:
+image: nginx:alpine
+container_name: pinkflow-nginx
+ports:
+- “80:80”
+- “443:443”
+volumes:
+- ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+- /etc/letsencrypt:/etc/letsencrypt:ro
+depends_on:
+- fastapi
+networks:
+- pinkflow
+
+fastapi:
+build: .
+container_name: pinkflow-fastapi
+environment:
+- FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID}
+- DEAFAUTH_PUBLIC_KEY=${DEAFAUTH_PUBLIC_KEY}
+- FIBRONROSE_API_KEY=${FIBRONROSE_API_KEY}
+- PINKSYNC_API_KEY=${PINKSYNC_API_KEY}
+- REDIS_URL=redis://redis:6379
+volumes:
+- ./secrets:/secrets:ro
+- /var/run/docker.sock:/var/run/docker.sock
+depends_on:
+- redis
+networks:
+- pinkflow
+deploy:
+resources:
+reservations:
+devices:
+- driver: nvidia
+count: all
+capabilities: [gpu]
+
+redis:
+image: redis:alpine
+container_name: pinkflow-redis
+networks:
+- pinkflow
+
+celery:
+build: .
+container_name: pinkflow-celery
+command: celery -A app.tasks worker –loglevel=info
+environment:
+- REDIS_URL=redis://redis:6379
+volumes:
+- ./secrets:/secrets:ro
+- /var/run/docker.sock:/var/run/docker.sock
+depends_on:
+- redis
+networks:
+- pinkflow
+
+networks:
+pinkflow:
+driver: bridge
+“””
+
+# ============================================
+
+# Dockerfile
+
+# ============================================
+
+“””
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install dependencies
+
+RUN apt-get update && apt-get install -y \
+gcc \
+&& rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+RUN pip install –no-cache-dir -r requirements.txt
+
+# Copy application
+
+COPY app/ ./app/
+
+# Run FastAPI with Uvicorn
+
+CMD [“uvicorn”, “app.main:app”, “–host”, “0.0.0.0”, “–port”, “8000”, “–workers”, “4”]
+“””

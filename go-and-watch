@@ -1,0 +1,15 @@
+# API - Go Backend
+
+This directory contains the Go microservice that powers the application's backend.
+
+It provides core functionalities for:
+- **PinkSync:** Real-time communication via WebSockets.
+- **DeafAuth:** User authentication and identity verification.
+
+## Running Locally
+
+From the monorepo root, run:
+```bash
+pnpm dev
+```
+This command starts the Go service in watch mode, automatically recompiling and restarting on file changes
