@@ -1,5 +1,6 @@
 # PinkFlow – Deaf-First Innovation Ecosystem
 
+[![Coverage](https://codecov.io/gh/pinkycollie/pinkflow/branch/main/graph/badge.svg)](https://codecov.io/gh/pinkycollie/pinkflow)
 [![License](https://img.shields.io/badge/License-PolyForm_Noncommercial-blue.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-0.1.0-orange)](VERSION)
 [![Status](https://img.shields.io/badge/Status-Experimental-yellow)](MILESTONES.md)
