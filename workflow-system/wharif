@@ -1,0 +1,16 @@
+// PinkFlow orchestrator using Temporal patterns
+func RunGitHubAction(ctx workflow.Context, request GitHubActionRequest) (*GitHubActionResponse, error) {
+    // 1. Generate consistent UUID across workflow replays
+    dispatchID, err := uuidSideEffect(ctx)
+    
+    // 2. Trigger GitHub Action with the ID
+    if err = triggerGitHubAction(ctx, request, dispatchID); err != nil {
+        return nil, err
+    }
+    
+    // 3. Discover the run ID by searching step names
+    actionID, err := getActionID(ctx, request, dispatchID)
+    
+    // 4. Long-poll with heartbeats to prevent timeouts
+    return awaitActionCompletion(ctx, request, actionID)
+}
