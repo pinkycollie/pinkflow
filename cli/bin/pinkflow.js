@@ -86,7 +86,7 @@ async function main() {
 
   const tenant = args.tenant;
   const env = args.env ?? "development";
-  const baseUrl = args.baseUrl ?? "https://api.pinkflow.io";
+  const baseUrl = args.baseUrl ?? "https://api.pinkflow.mbtq.dev";
   const consent = args.consent ?? "2026-01";
   const jsonMode = Boolean(args.json);
 
