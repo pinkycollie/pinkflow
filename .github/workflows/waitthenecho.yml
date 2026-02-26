@@ -1,0 +1,16 @@
+# In your GitHub Action workflow (must exist in target repo)
+name: wait-then-echo
+on:
+  workflow_dispatch:
+    inputs:
+      dispatch_id:
+        description: An ID used to identify the workflow run
+        required: true
+        type: string
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      # Put the dispatch ID in the step name so we can find it later
+      - name: Dispatch ${{ inputs.dispatch_id }}
+        run: echo "Dispatch ${{ inputs.dispatch_id }}"
