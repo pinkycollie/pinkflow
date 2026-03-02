@@ -22,15 +22,12 @@ jobs:
       
       - name: Run linter
         run: npm run lint
-        continue-on-error: true
       
       - name: Run type check
         run: npm run typecheck
-        continue-on-error: true
       
       - name: Run tests
         run: npm test -- --ci
-        continue-on-error: true
       
       - name: Build application
         run: npm run build
