@@ -14,17 +14,16 @@ async function createGitHubInstallationToken() {
   return process.env.GH_APP_INSTALLATION_TOKEN || process.env.GITHUB_TOKEN;
 }
 
+// TODO: Implement setRepoSecret: this function is a placeholder and should properly set encrypted secrets in production.
 async function setRepoSecret(
   octokit: Octokit,
   owner: string,
   repo: string,
   secretName: string,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _secretValue: string
 ) {
   // Get repository public key for encrypting secrets
   try {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { data: _publicKey } = await octokit.rest.actions.getRepoPublicKey({
       owner,
       repo,
