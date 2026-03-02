@@ -1,9 +1,9 @@
 # Repo governance
 
-* @pinkycollie/platform-team
+* @pinkycollie
 
 # API routes
-app/api/** @pinkycollie/backend-team
+app/api/** @pinkycollie
 
 # Workflows
-.github/workflows/** @pinkycollie/devops-team
+.github/workflows/** @pinkycollie
