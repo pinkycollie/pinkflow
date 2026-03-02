@@ -1,0 +1,14 @@
+// In PinkFlow orchestrator
+class DeterministicUUID {
+  static generate(workflowID: string, runID: string): string {
+    // Same inputs = same UUID, across retries and replays
+    const hash = crypto.createHash('sha256')
+      .update(workflowID)
+      .update(runID)
+      .digest('hex');
+    return hash.substring(0, 16);
+  }
+}
+
+// Use this a dispatch_id
+const dispatchID = DeterministicUUID.generate(workflow.id, workflow.runId);

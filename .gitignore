@@ -53,6 +53,8 @@ pnpm-debug.log*
 coverage/
 .nyc_output/
 .pytest_cache/
+__pycache__/
+*.pyc
 .coverage
 htmlcov/
 *.cover

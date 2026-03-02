@@ -1,0 +1,23 @@
+# Marketing Site - Docker Compose
+# For local development and testing
+
+version: '3.8'
+
+services:
+  marketing-site:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_SITE_NAME=MBTQ.dev - PinkFlow Marketing
+      - NEXT_PUBLIC_SITE_DESCRIPTION=Deaf-First Innovation Ecosystem
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s

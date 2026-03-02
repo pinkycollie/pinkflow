@@ -23,11 +23,11 @@ jobs:
       matrix:
         # Add languages as they're introduced to the project
         # Supported: 'cpp', 'csharp', 'go', 'java', 'javascript', 'python', 'ruby', 'swift'
-        language: [ 'python' ]
+        language: [ 'javascript' ]
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v6
+      uses: actions/checkout@v5
 
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v4
@@ -37,7 +37,7 @@ jobs:
         # queries: security-extended,security-and-quality
 
     # Autobuild attempts to build compiled languages
-    # For interpreted languages like Python, this step is not needed
+    # For interpreted languages like Python and JavaScript, this step is not needed
     - name: Autobuild
       uses: github/codeql-action/autobuild@v4
 
