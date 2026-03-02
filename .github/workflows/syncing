@@ -1,0 +1,9 @@
+# Current: Separate CI/CD per repo
+# Opportunity: Single PinkFlow pipeline for all
+
+.github/workflows/pinkflow-pipeline.yml
+  triggers:
+    - deafauth changes → deploy deafauth
+    - pinksync changes → deploy pinksync + test accessibility
+    - fibonrose changes → deploy fibonrose + update trust scores
+    - all changes → full ecosystem deployment

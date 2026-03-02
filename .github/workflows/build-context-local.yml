@@ -3,7 +3,7 @@ name: Build Community Context (local)
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 4 * * *' # daily at 04:00 UTC
+    - cron: '0 4 * * *' # weekly at 04:00 UTC
 
 jobs:
   build-and-open-pr:

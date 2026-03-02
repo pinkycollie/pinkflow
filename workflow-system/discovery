@@ -1,0 +1,8 @@
+//  OpenAPI specs define interfaces but:
+const interconnectionGaps = {
+  serviceDiscovery: "How services find each other",
+  authenticationFlow: "Service-to-service auth",
+  eventBus: "Cross-service communication",
+  sharedConfig: "Central configuration",
+  healthChecks: "Cross-service monitoring"
+};
