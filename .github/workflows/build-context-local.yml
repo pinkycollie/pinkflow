@@ -3,7 +3,7 @@ name: Build Community Context (local)
 on:
   workflow_dispatch:
   schedule:
-   -disabled
+   -cron: '0 4 * * *' # weekly at 04:00 UTC
 jobs:
   build-and-open-pr:
     runs-on: ubuntu-latest
