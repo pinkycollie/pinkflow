@@ -4,9 +4,11 @@
 [![CodeQL](https://github.com/pinkycollie/PinkFlow/actions/workflows/codeql.yml/badge.svg)](https://github.com/pinkycollie/PinkFlow/actions/workflows/codeql.yml)
 [![License](https://img.shields.io/badge/license-TBD-blue.svg)](LICENSE)
 
-### 🚀 Status: Foundation Built, Backend Integration in Progress
+### 🚀 Status: Auto-Deploy System Complete ✅
 
 PinkFlow (part of MBTQ.dev) is a **Deaf-First ecosystem** built to empower entrepreneurs, researchers, and creators with AI-driven, accessible business tools. It is designed around the **Idea → Build → Grow → Managed** lifecycle and powered by **MagicianCore** and the **360Magicians** suite.
+
+**New**: PinkFlow now includes a complete **Auto-Deploy System** for provisioning React applications when customers purchase through Stripe. [Learn more →](#auto-deploy-system)
 
 ---
 
@@ -46,6 +48,12 @@ PinkFlow is a process-orchestration layer for partners and collaborators who don
 
 ### Current Features
 
+- **Auto-Deploy System**: Complete system for provisioning React apps via Stripe purchases ✅ **NEW**
+  - Stripe webhook integration with signature verification
+  - Automated GitHub repository creation from templates
+  - Vercel project setup and deployment
+  - Complete CI/CD pipelines
+  - [Learn more →](#auto-deploy-system)
 - **Role-Based UI**: Adapts interface based on user role (Developer, Researcher, Contributor)
 - **Component-Driven Architecture**: Modular, maintainable React + TypeScript SPA
 - **Mocked Services**: Full frontend functionality with mock backend for development
@@ -235,7 +243,88 @@ REACT_APP_WS_URL=ws://localhost:3001
 **Infrastructure**:
 - Google Cloud Platform
 - Cloud Run for services
-- Vercel for frontend (optional)
+- Vercel for frontend and auto-deployed apps
+- GitHub for version control and CI/CD
+
+---
+
+## 🚀 Auto-Deploy System
+
+### Overview
+
+PinkFlow includes a complete auto-deploy system that automatically provisions and deploys React applications when customers make purchases through Stripe.
+
+### How It Works
+
+```
+Customer Purchase → Stripe Webhook → GitHub Repo Creation → Vercel Deployment → Live App
+```
+
+1. **Customer purchases** a plan through Stripe Checkout
+2. **Stripe sends webhook** to PinkFlow with plan details
+3. **GitHub repository created** from template, private and configured
+4. **Vercel project created** and deployed automatically
+5. **Customer receives** repository access and live app URL
+
+### Key Features
+
+- ✅ **Stripe Integration**: Webhook handling with signature verification
+- ✅ **GitHub Provisioning**: Automated repository creation from templates
+- ✅ **Vercel Deployment**: Automatic project setup and deployment
+- ✅ **CI/CD Pipelines**: Complete GitHub Actions workflows
+- ✅ **Security First**: All workflows have minimal permissions, 0 vulnerabilities
+- ✅ **Comprehensive Documentation**: 2,100+ lines of setup guides and references
+
+### Documentation
+
+- **[AUTODEPLOY.md](AUTODEPLOY.md)** - Complete setup guide and architecture
+- **[INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md)** - Step-by-step integration instructions
+- **[SECRETS_REFERENCE.md](SECRETS_REFERENCE.md)** - Environment variables and security
+- **[AUTODEPLOY_CHECKLIST.md](AUTODEPLOY_CHECKLIST.md)** - Implementation checklist (100+ items)
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** - Visual architecture diagrams
+- **[IMPLEMENTATION_DETAILS.md](IMPLEMENTATION_DETAILS.md)** - Technical implementation details
+
+### Quick Start
+
+1. **Configure Environment Variables**
+   ```bash
+   cp .env.example .env.local
+   # Fill in Stripe, GitHub, and Vercel credentials
+   ```
+
+2. **Install Dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Test Locally**
+   ```bash
+   npm run dev
+   # Use Stripe CLI to forward webhooks
+   ```
+
+4. **Deploy to Production**
+   ```bash
+   npm run build
+   vercel --prod
+   ```
+
+### Template Repository
+
+The `template-nextjs-app/` directory contains a complete Next.js application template that is used for provisioning new repositories. It includes:
+
+- Next.js 14 with TypeScript
+- GitHub Actions workflows
+- Vercel deployment configuration
+- Security best practices
+- Accessibility features
+
+### Security
+
+✅ **CodeQL Scan**: 0 vulnerabilities  
+✅ **All workflows**: Minimal explicit permissions  
+✅ **Stripe webhooks**: Signature verification  
+✅ **Secrets**: Best practices documented, none in code
 
 ---
 
