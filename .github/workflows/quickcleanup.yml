@@ -1,0 +1,22 @@
+            - name: Quick Cleanup
+  # You may pin to the exact commit or the version.
+  # uses: palmsoftware/quick-cleanup@45b4f0e01e0b256923910f04b5239c65253fce6d
+  uses: palmsoftware/quick-cleanup@v0.0.3
+  with:
+    # Cleanup intensity (auto, light, aggressive, skip)
+    cleanup-mode: # optional, default is auto
+    # Move Docker storage to /mnt partition (always, auto, never)
+    relocate-docker: # optional, default is auto
+    # Custom path for Docker data-root
+    docker-storage-path: # optional, default is /mnt/docker-storage
+    # Minimum free space required in GB (0 = no validation)
+    minimum-free-space: # optional, default is 0
+    # Space threshold in GB for auto mode (light if above, aggressive if below)
+    cleanup-threshold: # optional, default is 20
+    # Remove Android SDK
+    remove-android: # optional, default is true
+    # Remove MySQL, PostgreSQL, Firefox, dotnet, etc.
+    remove-large-packages: # optional, default is true
+    # Run docker system prune
+    remove-docker-images: # optional, default is true
+          
