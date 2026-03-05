@@ -1,0 +1,9 @@
+# Repo governance
+
+* @pinkycollie
+
+# API routes
+app/api/** @pinkycollie
+
+# Workflows
+.github/workflows/** @pinkycollie

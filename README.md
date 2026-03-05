@@ -16,11 +16,11 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 [![Live Demo](https://img.shields.io/badge/Demo-Live-success)](https://pinkycollie.github.io/pinkflow/)
 
-### 🚀 Status: Foundation Built, Backend Integration in Progress
+### 🚀 Status: Auto-Deploy System Complete ✅
 
 PinkFlow (part of MBTQ.dev) is a **Deaf-First ecosystem** built to empower entrepreneurs, researchers, and creators with AI-driven, accessible business tools. It is designed around the **Idea → Build → Grow → Managed** lifecycle and powered by **MagicianCore** and the **360Magicians** suite.
 
-🌐 **[Try the Live Demo](https://pinkycollie.github.io/pinkflow/)** - Test sign language models directly from GitHub!
+**New**: PinkFlow now includes a complete **Auto-Deploy System** for provisioning React applications when customers purchase through Stripe. [Learn more →](#auto-deploy-system)
 
 ---
 
@@ -60,6 +60,12 @@ PinkFlow is a process-orchestration layer for partners and collaborators who don
 
 ### Current Features
 
+- **Auto-Deploy System**: Complete system for provisioning React apps via Stripe purchases ✅ **NEW**
+  - Stripe webhook integration with signature verification
+  - Automated GitHub repository creation from templates
+  - Vercel project setup and deployment
+  - Complete CI/CD pipelines
+  - [Learn more →](#auto-deploy-system)
 - **Role-Based UI**: Adapts interface based on user role (Developer, Researcher, Contributor)
 - **Component-Driven Architecture**: Modular, maintainable React + TypeScript SPA
 - **Mocked Services**: Full frontend functionality with mock backend for development
