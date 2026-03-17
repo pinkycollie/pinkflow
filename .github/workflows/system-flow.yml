@@ -1,0 +1,47 @@
+version: 1
+
+workflow_system:
+  enabled: true
+  on: jobs:
+    
+  root: "workflow-system"
+  workflows:
+    - name: audit
+      entry: "audit/audit_engine.py"
+      enabled: true
+
+    - name: build_backend
+      entry: "builder/backend_builder.py"
+      enabled: true
+
+    - name: build_frontend
+      entry: "builder/frontend_builder.py"
+      enabled: true
+
+    - name: build_container
+      entry: "builder/container_builder.py"
+      enabled: true
+
+    - name: versioning
+      entry: "versioning/semver.py"
+      enabled: true
+
+audit:
+  scan_extensions: [".md", ".py", ".js", ".ts", ".html", ".json"]
+  detect_accessibility: true
+  detect_urls: true
+  detect_providers: true
+  deep_scan: true
+
+build:
+  backend: true
+  frontend: true
+  container: true
+
+versioning:
+  semantic: true
+  bump: "patch"
+
+providers:
+  detect: true
+  export: true
