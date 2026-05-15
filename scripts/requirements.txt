@@ -1,6 +1,6 @@
 sentence-transformers==2.7.0
 faiss-cpu==1.13.2
-requests==2.34.0
+requests==2.34.2
 beautifulsoup4==4.14.3
-transformers==4.57.6
+transformers==5.0.0rc3
 torch==2.10.0
