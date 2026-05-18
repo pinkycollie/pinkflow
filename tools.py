@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "magician-system"
 version = "0.1.0"
-description = ""
-authors = ["You <you@example.com>"]
+description = "a system node/resources"
+authors = ["Pinky Collie <pinkycollie@outlook.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.11"
