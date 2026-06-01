@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  nginx:
+    image: nginx:alpine
+    container_name: pinkflow-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    depends_on:
+      - fastapi
+    networks:
+      - pinkflow
+  
+  fastapi:
+    build: .
+    container_name: pinkflow-fastapi
+    environment:
+      - FIREBASE_AI_SDK
+      - DEAFAUTH_PUBLIC_KEY=${DEAFAUTH_PUBLIC_KEY}
+      - FIBRONROSE_API_KEY=${FIBRONROSE_API_KEY}
+      - PINKSYNC_API_KEY=${PINKSYNC_API_KEY}
+      - REDIS_URL=redis://redis:6379
+    volumes:
+      - ./secrets:/secrets:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - redis
+    networks:
+      - pinkflow
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+  
+  redis:
+    image: redis:alpine
+    container_name: pinkflow-redis
+    networks:
+      - pinkflow
+  
+  celery:
+    build: .
+    container_name: pinkflow-celery
+    command: celery -A app.tasks worker --loglevel=info
+    environment:
+      - REDIS_URL=redis://redis:6379
+    volumes:
+      - ./secrets:/secrets:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - redis
+    networks:
+      - pinkflow
+
+networks:
+  pinkflow:
+    driver: bridge
