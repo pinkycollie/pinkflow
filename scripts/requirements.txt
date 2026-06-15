@@ -1,5 +1,5 @@
 sentence-transformers==2.7.0
-faiss-cpu==1.13.2
+faiss-cpu==1.14.3
 requests==2.34.2
 beautifulsoup4==4.14.3
 transformers==5.8.1
