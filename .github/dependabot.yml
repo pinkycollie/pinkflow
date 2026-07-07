@@ -34,7 +34,7 @@ updates:
       # Ignore major version updates for now (require manual review)
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
-
+.
   # NPM dependencies (when frontend/Node.js services are added)
   - package-ecosystem: "npm"
     directory: "/"

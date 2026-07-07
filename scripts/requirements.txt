@@ -3,4 +3,4 @@ faiss-cpu==1.13.2
 requests==2.34.2
 beautifulsoup4==4.14.3
 transformers==5.8.1
-torch==2.10.0
+torch==2.12.1
